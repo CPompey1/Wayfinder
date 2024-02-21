@@ -2,6 +2,7 @@ from scipy.optimize import minimize
 import numpy as np
 import math
 
+#signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
 def tra_localization(signal_a, signal_b, signal_c, name_a, name_b, name_c):
 
     point_a = emitter_location_dic[name_a]
@@ -18,14 +19,14 @@ def tra_localization(signal_a, signal_b, signal_c, name_a, name_b, name_c):
     distances = np.array([dis_a, dis_b, dis_c])
 
     # Objective function: sum of squared differences between actual and calculated distances
-    def objective_function(unknown, points, distances):
+    def itera_guessing(unknown, points, distances):
         return sum((np.linalg.norm(unknown - points[i]) - distances[i])**2 for i in range(len(points)))
 
     # Initial guess for the unknown point
     initial_guess = np.mean(points, axis=0)
 
     # Minimize the objective function
-    result = minimize(objective_function, initial_guess, args=(points, distances))
+    result = minimize(itera_guessing, initial_guess, args=(points, distances))
 
     # Extract the estimated location of the unknown point
     estimated_location = result.x
