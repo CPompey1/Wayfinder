@@ -1,0 +1,59 @@
+{
+    "service_group": [
+        {
+            "Bathroom" : [
+                {
+                    "0" : ["Basement"],
+                    "1" : ["First Floor"],
+                    "2" : ["Second Floor"],
+                    "3" : ["Third Floor"],
+                    "4" : ["Fourth Floor"],
+                    "5" : ["Fifth Floor"]
+                }
+            ],
+            "Classroom" : [
+                {
+                    "0" : null,
+                    "1" : ["Meeting Room 110", "Classroom 109"],
+                    "2" : ["Meeting Room 223"],
+                    "3" : null,
+                    "4" : ["Study Room 420"],
+                    "5" : ["Study Room 520", "Polish Room"]
+                }
+            ],
+            "Office" : [
+                {
+                    "0" : ["Marketing Communications and Digital Engagement (Academic Affairs)", "Administrative Operations (Academic Affairs)"],
+                    "1" : ["Science and Engineering Information Center", "Amanda McCormick, Science Librarian", "Todd Nibble, Facilities and Operation Supervisor", "Jill M. Hackenberg, Associate Librarian", "Sam Kim, GIS and Geospatial Librarian", "Erin Rowley, Engineering Librarian"],
+                    "2" : ["Jake Carlson, Associate University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Donna Berryman, Associate University for Research", "Karlen Chase, Head of Institutional Repository Services"],
+                    "3" : null,
+                    "4" : null,
+                    "5" : null
+                }
+                
+            ],
+            "Stairs" : null,
+            "Elevator" : null,
+            "Collection" : [
+                {
+                    "0" : ["Map Collection"],
+                    "1" : ["Government Document", "SEIC Reference Collection"],
+                    "2" : ["Current Periodicals", "Graphic Novels", "Indigenous Students Collection", "International Leisure Reading", "East Asia Ref"],
+                    "3" : null,
+                    "4" : null,
+                    "5" : null
+                }
+            ],
+            "Other" : [
+                {
+                    "0" : null,
+                    "1" : ["Outside Entrance/Exit"],
+                    "2" : ["Main Inside Entrance", "Level UP", "Scanners", "Library Service Desk"],
+                    "3" : null,
+                    "4" : ["Study Room 420"],
+                    "5" : ["Study Room 520", "Polish Room"]
+                }
+            ]
+        }
+    ]
+}
