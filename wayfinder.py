@@ -8,6 +8,9 @@ import tkinter as tk
 FONT = "Calibri 28 bold"
 FONT_SERVICES = "Calibri 15"
 SCREEN_DIMENSION = "600x1024"
+def forever():
+    while(True):
+        print("forever\n")
 class Wayfinder_UI:
     global service_array
 
@@ -29,6 +32,7 @@ class Wayfinder_UI:
         panel.pack()
         start_frame = ttk.Frame(master=self.master)
         start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = self.select_service)
+        # start_button = ttk.Button(master=start_frame, text= "print forever", command = forever)
         start_button.pack(side = 'left')
         start_frame.pack(pady=10)
         dev_mode_frame = ttk.Frame(master=self.master)
