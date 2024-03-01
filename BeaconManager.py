@@ -12,7 +12,7 @@ class BeaconManager:
         self.uniqueBeacons = {} #{key(macadress): value (bledevice,rssi)}
         self.numUnique = 0
 
-    async def initialize(self):
+    async def initialize_scanning(self):
         # i = 0
         # temp = await self.scanner.discover()
         # for beacon in temp:
@@ -30,6 +30,9 @@ class BeaconManager:
     def get_closest(self):
         return self.closest
     
+    def clear_closest(self):
+        self.closest = [None,None,None]
+
     def get_beacons(self):
         return self.beacons
     
