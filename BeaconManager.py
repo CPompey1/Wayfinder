@@ -3,12 +3,13 @@ import bleak
 import asyncio
 class BeaconManager:
     MAX_RSI = 200
-    
+    MAX_UNIQUE = 3
     def __init__(self):
         self.scanner = BleakScanner() 
         self.beacons = {}
-        self.closest = None #(bleDevice,rssi)
-        self.uniqueBeacons = [(None,None,None),(None,None,None),(None,None,None)] #[<tuple(3) of Devices>,<tuple(3) of respective macadresses>,<tuple(3) of rssi's>]
+        self.closest = [None,None,None] #[(bleDevice,macadress,,rssi)]
+        # self.uniqueBeacons = [(None,None,None),(None,None,None),(None,None,None)] # [(BLEdevice,macadress,rssi) ]
+        self.uniqueBeacons = {} #{key(macadress): value (bledevice,rssi)}
         self.numUnique = 0
 
     async def initialize(self):
@@ -41,9 +42,7 @@ class BeaconManager:
         return out
     def clear_unique_beacons(self):
         self.numUnique = 0
-        for i in range(len(self.uniqueBeacons[0])):
-            self.uniqueBeacons[0][i] = None
-            self.uniqueBeacons[1][i] = None
+        self.uniqueBeacons = {}
 
     async def update_beacons(self):
         #advertisement (BLEDevice,AdvertisementData)
@@ -52,18 +51,22 @@ class BeaconManager:
         # temp = await self.scanner.discover()
         async for beacon in self.scanner.advertisement_data():
             self.beacons[beacon[0].address] = beacon[0]
-            if self.closest == None or beacon[1].rssi < abs(self.closest[1]):
-                self.closest = (beacon[0],abs(beacon[1].rssi)) 
+            # if self.closest == None or beacon[1].rssi < abs(self.closest[1]):
+            #     self.closest = (beacon[0],abs(beacon[1].rssi)) 
             
-            #If number of unqiue beacons is less than 0 and the adress doesnt already exist in unqie beacons
-            if self.numUnique < len(self.uniqueBeacons[0]) and not beacon[0].address in  self.uniqueBeacons[1]:
-                self.uniqueBeacons[0][self.numUnique] = beacon[0]
-                self.uniqueBeacons[1][self.numUnique] = beacon[0].address
-                self.uniqueBeacons[2][self.numUnique] = beacon[1].rssi
+            #If number of unqiue beacons is less than 3 and the adress doesnt already exist in unqie beacons
+            if self.numUnique < BeaconManager.MAX_UNIQUE and not beacon[0].address in  self.uniqueBeacons.keys():
+                self.uniqueBeacons[beacon[0].address] = (beacon[0],beacon[1].rssi)
                 self.numUnique+=1
+
+            for i in range(len(self.closest)):
+                beaconTuple = self.closest[i]
+                if beaconTuple == None or abs(beacon[1]) < abs(beaconTuple[2]):
+                    self.closest[i] = (beacon[0].address,beacon[0],beacon[1].rssi)
 
 
     async def close(self):
+        #might need to await
         self.beaconUpdater.cancel()
         await self.scanner.stop()
     
