@@ -26,9 +26,14 @@ def tra_localization():
     points = np.array([point_a, point_b, point_c])
 
     # distance is the distance from each emitter
-    dis_a = 9.2143 * math.log(cloest3_beacon_list[0][2]) + 47.283
-    dis_b = 9.2143 * math.log(cloest3_beacon_list[1][2]) + 47.283
-    dis_c = 9.2143 * math.log(cloest3_beacon_list[2][2]) + 47.283
+    # dis_a = 9.2143 * math.log(cloest3_beacon_list[0][2]) + 47.283
+    # dis_b = 9.2143 * math.log(cloest3_beacon_list[1][2]) + 47.283
+    # dis_c = 9.2143 * math.log(cloest3_beacon_list[2][2]) + 47.283
+    
+    dis_a = 51.044 * math.log(cloest3_beacon_list[0][2]) - 200.8
+    dis_b = 51.044 * math.log(cloest3_beacon_list[1][2]) - 200.8
+    dis_c = 51.044 * math.log(cloest3_beacon_list[2][2]) - 200.8
+  
 
     # Example distances from the unknown point to each of the known points
     distances = np.array([dis_a, dis_b, dis_c])
