@@ -7,10 +7,10 @@ import ttkbootstrap as ttkint
 from PIL import ImageTk, Image
 import json
 
-FONT = "Calibri 28 bold"
+FONT = "Calibri 26 bold"
 FONT_SERVICES = "Calibri 15"
-SCREEN_DIMENSION = "600x1024"
-XDIMENSION = 600
+SCREEN_DIMENSION = "768x1024"
+XDIMENSION = 768
 YDIMENSION = 1024
 
 def flatten(list_of_list):
@@ -32,12 +32,15 @@ class Wayfinder_UI:
         self.stairs = True
         window = Tk()
         window.title('Wayfinder')
-        window.geometry(SCREEN_DIMENSION)
+        #window.geometry(SCREEN_DIMENSION)
         #window.focus_set()
+        print(window.winfo_screenwidth())
+        print(window.winfo_screenheight())
+
+
         window.bind("<Escape>", lambda e: window.quit())
         self.master = window
-        title_label = ttk.Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT)
-        title_label.pack()
+        title_label = Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
         img = ImageTk.PhotoImage(Image.open("lockwood_main.jpg"))
         panel = Label(window, image=img)
         panel.pack()
@@ -128,14 +131,21 @@ class Wayfinder_UI:
         nav_page.title('Wayfinder')
         nav_page.geometry(SCREEN_DIMENSION)
         self.master = nav_page
+        mess = "Goal: "+ goal
+        nav_label = Label(master= nav_page, text= "Wayfinder Navigation", font=FONT).pack()
+        service_label = Label(master= nav_page, text= mess, font=FONT_SERVICES).pack()
         #nav_page.focus_set()
         #label_mess = "Preview navigation to:"
         #label = ttk.Label(master= self.master, background= "White", text= label_mess, font=FONT)
         #label.pack()
         #label_ser = ttk.Label(master= self.master, background= "White", text= goal, font=FONT_SERVICES)
         #label_ser.pack()
+
+        # Here the data coming from the beacon 
         start = [0,0]
         goal = [40, 550]
+
+
         draw_path(nav_page, start, goal)
         nav_page.mainloop()
 
@@ -178,7 +188,6 @@ def draw_path(page, start, goal):
     screen = Canvas(master=page, width=600, height=700)
     screen.configure(background="white")
     screen.pack(anchor="center")
-    
     img_floor = ImageTk.PhotoImage(Image.open("floor_2.jpg"))
     # Play with position
     screen.create_image(0,0, image= img_floor, anchor= "nw")
