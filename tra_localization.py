@@ -4,7 +4,13 @@ from BeaconManager import BeaconManager
 import math
 
 
-emitter_location_dic = {}
+emitter_location_dic = {"DD340207E30A": [7.85,-27.6,8.5], 
+                        "DD340208F9FC": [56.6,-45.68,8.5], 
+                        "DD340208FD1E": [75.44, -64.52, 8.5], 
+                        "DD340208FC89": [75.44, 22.65, 3.17], 
+                        "DD340208FD59": [57.19, -22.35, 8.5], 
+                        "DD340208FBB1": [57.19, 37.98, 9.25], 
+                        "DD340208FC48": [75.44, 22.65, 3.17]}
 
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
 def tra_localization():
