@@ -7,7 +7,8 @@ class BeaconManager:
     def __init__(self):
         self.scanner = BleakScanner() 
         self.beacons = {}
-        self.closest = [None,None,None] #[(bleDevice,macadress,,rssi)]
+        self.closest = [None,None,None] #[(bleDevice,macadress,rssi)]
+        self.closest_len = 0
         # self.uniqueBeacons = [(None,None,None),(None,None,None),(None,None,None)] # [(BLEdevice,macadress,rssi) ]
         self.uniqueBeacons = {} #{key(macadress): value (bledevice,rssi)}
         self.numUnique = 0
@@ -32,6 +33,7 @@ class BeaconManager:
     
     def clear_closest(self):
         self.closest = [None,None,None]
+        self.closest_len = 0
 
     def get_beacons(self):
         return self.beacons
@@ -62,10 +64,32 @@ class BeaconManager:
                 self.uniqueBeacons[beacon[0].address] = (beacon[0],beacon[1].rssi)
                 self.numUnique+=1
 
-            for i in range(len(self.closest)):
-                beaconTuple = self.closest[i]
-                if beaconTuple == None or abs(beacon[1]) < abs(beaconTuple[2]):
-                    self.closest[i] = (beacon[0].address,beacon[0],beacon[1].rssi)
+            
+            #If the list length is less than 3, then add the new signal info to the empty slot
+            #If the the list length is 3, sort the list
+            #when the new signal info is coming. Compare rssi with each slot to determine which one need to update.
+            #Since the signal streng has been sorted, updated the rest tuple with stronger signal tuple.
+            if(self.closest_len < 3):
+                self.closest[i] = (beacon[0].address,beacon[0],beacon[1].rssi)
+                self.closest_len += 1
+                if(self.closest_len == 3):
+                    self.closest.sort(key=lambda a: a[2])
+            else:
+                for i in range(self.closest_len):
+                    if (abs(beacon[1]) < abs(self.closest[i][2])):
+                        beaconTuple = self.closest[i]
+                        self.closest[i] = (beacon[0].address,beacon[0],beacon[1].rssi)
+                        for j in range(i,self.closest_len):
+                            beacon_cache = self.closest[i]
+                            self.closest[i] = beaconTuple
+                            beaconTuple = beacon_cache
+                        break
+                        
+                
+            # for i in range(len(self.closest)):    
+            # beaconTuple = self.closest[i]
+            # if beaconTuple == None or abs(beacon[1]) < abs(beaconTuple[2]):
+            #     self.closest[i] = (beacon[0].address,beacon[0],beacon[1].rssi)
 
 
     async def close(self):

@@ -1,19 +1,28 @@
 from scipy.optimize import minimize
 import numpy as np
+from BeaconManager import BeaconManager
 import math
 
-#signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
-def tra_localization(signal_a, signal_b, signal_c, name_a, name_b, name_c):
 
-    point_a = emitter_location_dic[name_a]
-    point_b = emitter_location_dic[name_b]
-    point_c = emitter_location_dic[name_c]
+emitter_location_dic = {}
+
+#signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
+def tra_localization():
+    
+    beaconMana = BeaconManager()
+    cloest3_beacon_list= sorted(beaconMana.closest.items(), key=lambda x: x[2])[:3]
+    
+    # point a, b, c is the location of the emitter
+    point_a = emitter_location_dic[cloest3_beacon_list[0][1]]
+    point_b = emitter_location_dic[cloest3_beacon_list[1][1]]
+    point_c = emitter_location_dic[cloest3_beacon_list[2][1]]
     # Example known points (x, y, z)
     points = np.array([point_a, point_b, point_c])
 
-    dis_a = 9.2143 * math.log(signal_a) + 47.283
-    dis_b = 9.2143 * math.log(signal_b) + 47.283
-    dis_c = 9.2143 * math.log(signal_c) + 47.283
+    # distance is the distance from each emitter
+    dis_a = 9.2143 * math.log(cloest3_beacon_list[0][2]) + 47.283
+    dis_b = 9.2143 * math.log(cloest3_beacon_list[1][2]) + 47.283
+    dis_c = 9.2143 * math.log(cloest3_beacon_list[2][2]) + 47.283
 
     # Example distances from the unknown point to each of the known points
     distances = np.array([dis_a, dis_b, dis_c])
@@ -33,3 +42,4 @@ def tra_localization(signal_a, signal_b, signal_c, name_a, name_b, name_c):
 
     print("Estimated location:", estimated_location)
 
+    beaconMana.clear_closest()
