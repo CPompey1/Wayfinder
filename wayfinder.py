@@ -10,8 +10,6 @@ import json
 FONT = "Calibri 26 bold"
 FONT_SERVICES = "Calibri 15"
 SCREEN_DIMENSION = "768x1024"
-XDIMENSION = 768
-YDIMENSION = 1024
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
@@ -29,14 +27,26 @@ class Wayfinder_UI:
     # Change this based on display dimensions
         self.json_file_dict: dict = file
         self.service_array = list(self.json_file_dict["service_group"][0].keys())
+        all_services = []
+        for i in range(len(self.service_array)):
+            floor_array = self.json_file_dict["service_group"][0][self.service_array[i]][0]
+            all_services.append(flatten(list(floor_array.values())))
+        all_services = flatten(all_services)
+        # Filter not None
+        self.all_valid_serv = list(filter(None,all_services))
+        # Order alphabetically
+        self.all_valid_serv = sorted(self.all_valid_serv)
+        # Default stairs selection
         self.stairs = True
         window = Tk()
         window.title('Wayfinder')
         #window.geometry(SCREEN_DIMENSION)
         #window.focus_set()
-        print(window.winfo_screenwidth())
-        print(window.winfo_screenheight())
-
+        self.WIDTH = window.winfo_screenwidth()
+        self.HEIGHT = window.winfo_screenheight()
+        self.SCREEN_DIMENSION = "" + str(self.HEIGHT) + "x" + str(self.WIDTH)
+        print(self.SCREEN_DIMENSION)
+        self.sel_service = "Second Floor Elevator"
 
         window.bind("<Escape>", lambda e: window.quit())
         self.master = window
@@ -54,7 +64,6 @@ class Wayfinder_UI:
         dev_mode_frame.pack(pady=10)
         self.selected = False
         self.master.mainloop()
-        self.sel_service = "Second Floor Elevator"
 
     # SECOND PAGE FOR SERVICE SELECTION
     # https://www.youtube.com/watch?v=wFyzmZVKPAw    useful video for multiple pages layout
@@ -68,23 +77,22 @@ class Wayfinder_UI:
             if not evt.widget.curselection():
                 return
             # Note here that Tkinter passes an event object to onselect()
-            w = evt.widget.curselection()[0] # Number from 0 to n number of services categories
+            w = evt.widget.curselection()[0] - 1 # Number from 0 to n number of services categories to exclude "ALL" category
             self.sel_service = str(services_lb.get(services_lb.curselection()))
             floor_array = {}
             # Side menu depending on selected service
-            try:
-                floor_array = self.json_file_dict["service_group"][0][self.service_array[w]][0]
-                list_services = flatten(list(floor_array.values()))
-            except:
-                # If no services are available for the selected category
-                print("No services for this category")
+            floor_array = self.json_file_dict["service_group"][0][self.service_array[w]][0]
             list_services = flatten(list(floor_array.values()))
             # Listbox for rooms
             room_lb = Listbox(self.master, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
-            floor_array = self.json_file_dict["service_group"][0][self.service_array[w]][0]
-            list_services = flatten(list(floor_array.values()))
-            for room in list_services:
-                room_lb.insert(tk.END, room)
+            if w == -1:
+                for room in self.all_valid_serv:
+                    room_lb.insert(tk.END, room)
+            else:
+                floor_array = self.json_file_dict["service_group"][0][self.service_array[w]][0]
+                list_services = flatten(list(floor_array.values()))
+                for room in list_services:
+                    room_lb.insert(tk.END, room)
             room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
 
             # Code for eventual scrollbar
@@ -101,24 +109,31 @@ class Wayfinder_UI:
         #print("Start button pressed")
         # Create new page
         page1 = Tk()
-        page1.configure(background="white")
+        page1.configure(background="white", width=self.WIDTH, height=self.HEIGHT)
         page1.title('Select Service')
-        page1.geometry(SCREEN_DIMENSION)
+        #page1.geometry(self.SCREEN_DIMENSION)
         # Escape sequence for fullscreen mode
         page1.focus_set()
         page1.grid_columnconfigure(1, weight=5)
         page1.bind("<Escape>", lambda e: page1.quit())
         self.master.destroy()
         self.master = page1
+        self.sel_service = "All services"
 
         # Listbox for services
-        services_lb = tk.Listbox(page1, height = len(self.service_array), width = 10, font=FONT, name='service_list')
+        services_lb = tk.Listbox(page1, height = len(self.service_array)+1, width = 10, font=FONT, name='service_list')
+        # Include an "all services" category with all reachable services
+        services_lb.insert(tk.END, "All services")
         for item in self.service_array:
             services_lb.insert(tk.END, item)
         services_lb.grid(column=0, row=0, sticky='nw', padx=0, pady=2)
         services_lb.bind('<<ListboxSelect>>', onselect)
         services_lb.select_set(0)
-
+        room_lb = Listbox(self.master, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
+        for room in self.all_valid_serv:
+            room_lb.insert(tk.END, room)
+        room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
+        room_lb.bind('<Double-1>', self.service_confirmation)
         # Good so far
         self.master.mainloop()
         
@@ -129,7 +144,7 @@ class Wayfinder_UI:
         self.master.destroy()
         nav_page = Tk()
         nav_page.title('Wayfinder')
-        nav_page.geometry(SCREEN_DIMENSION)
+        nav_page.geometry(self.SCREEN_DIMENSION)
         self.master = nav_page
         mess = "Goal: "+ goal
         nav_label = Label(master= nav_page, text= "Wayfinder Navigation", font=FONT).pack()
@@ -156,7 +171,7 @@ class Wayfinder_UI:
         pass
     # Pop-up message to select stairs over elevator
     def stairs_or_el(self):
-        self.stairs = messagebox.askyesno(title = "Preference", message="Stairs?")
+        self.stairs = messagebox.askyesno(title = "Preference", message="Stairs or Elevator? \nYes: Stairs, No: Elevator")
         self.select_service()
     def service_confirmation(self, args: Event):
         if not args.widget.curselection():
@@ -164,13 +179,14 @@ class Wayfinder_UI:
         if not self.selected:
             self.selected = True
             idx = args.widget.curselection()[0]
-            floor_services_flat= flatten(list(self.json_file_dict["service_group"][0][self.sel_service][0].values()))
-            serv_not_none = []
-            # Getting rid of None values from json file
-            for el in floor_services_flat:
-                if el is not None:
-                    serv_not_none.append(el)
-            sel_service = serv_not_none[idx]
+            if self.sel_service != "All services":
+                floor_services_flat= flatten(list(self.json_file_dict["service_group"][0][self.sel_service][0].values()))
+                # Getting rid of None values from json file
+                serv_not_none = list(filter(None,floor_services_flat))
+                sel_service = serv_not_none[idx]
+            else:
+                # If selected from the "All services" list
+                sel_service = self.all_valid_serv[idx]
             print(sel_service)
             mess= "Selected service: \""
             mess = mess + str(sel_service)
