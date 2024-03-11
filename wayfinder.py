@@ -40,12 +40,10 @@ class Wayfinder_UI:
         self.stairs = True
         window = Tk()
         window.title('Wayfinder')
-        #window.geometry(SCREEN_DIMENSION)
         #window.focus_set()
-        self.WIDTH = window.winfo_screenwidth()
-        self.HEIGHT = window.winfo_screenheight()
-        self.SCREEN_DIMENSION = "" + str(self.HEIGHT) + "x" + str(self.WIDTH)
-        print(self.SCREEN_DIMENSION)
+        window.geometry("%dx%d" % (window.winfo_screenwidth(), window.winfo_screenheight()))
+        window.state('zoomed')
+        #window.geometry(self.SCREEN_DIMENSION)
         self.sel_service = "Second Floor Elevator"
 
         window.bind("<Escape>", lambda e: window.quit())
@@ -67,7 +65,6 @@ class Wayfinder_UI:
 
     # SECOND PAGE FOR SERVICE SELECTION
     # https://www.youtube.com/watch?v=wFyzmZVKPAw    useful video for multiple pages layout
-    
             
     def select_service(self):
         global services_lb
@@ -109,12 +106,15 @@ class Wayfinder_UI:
         #print("Start button pressed")
         # Create new page
         page1 = Tk()
-        page1.configure(background="white", width=self.WIDTH, height=self.HEIGHT)
+        page1.configure(background="white")
+        #page1.geometry(self.SCREEN_DIMENSION)
+        page1.geometry("%dx%d" % (page1.winfo_screenwidth(), page1.winfo_screenheight()))
         page1.title('Select Service')
         #page1.geometry(self.SCREEN_DIMENSION)
         # Escape sequence for fullscreen mode
         page1.focus_set()
         page1.grid_columnconfigure(1, weight=5)
+        page1.state('zoomed')
         page1.bind("<Escape>", lambda e: page1.quit())
         self.master.destroy()
         self.master = page1
@@ -134,9 +134,7 @@ class Wayfinder_UI:
             room_lb.insert(tk.END, room)
         room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
         room_lb.bind('<Double-1>', self.service_confirmation)
-        # Good so far
         self.master.mainloop()
-        
        
     # THIRD PAGE FOR ACTUAL NAVIGATION
     # HERE THE CODE TO COMMUNICATE BETWEEN THE SELECTED SERVICE AND THE BLUETOOTH CODE
@@ -144,11 +142,13 @@ class Wayfinder_UI:
         self.master.destroy()
         nav_page = Tk()
         nav_page.title('Wayfinder')
-        nav_page.geometry(self.SCREEN_DIMENSION)
+        #nav_page.geometry(self.SCREEN_DIMENSION)
+        nav_page.geometry("%dx%d" % (nav_page.winfo_screenwidth(), nav_page.winfo_screenheight()))
         self.master = nav_page
         mess = "Goal: "+ goal
         nav_label = Label(master= nav_page, text= "Wayfinder Navigation", font=FONT).pack()
         service_label = Label(master= nav_page, text= mess, font=FONT_SERVICES).pack()
+        nav_page.state('zoomed')
         #nav_page.focus_set()
         #label_mess = "Preview navigation to:"
         #label = ttk.Label(master= self.master, background= "White", text= label_mess, font=FONT)
@@ -160,19 +160,34 @@ class Wayfinder_UI:
         start = [0,0]
         goal = [40, 550]
 
-
         draw_path(nav_page, start, goal)
-        nav_page.mainloop()
 
- 
+        nav_page.mainloop()
 
     # DEVELOPER MODE TO CHECK ON EMITTERS FUNCTIONALITIES
     def developer_mode(self):
-        pass
+        dev_page = Tk()
+        dev_page.configure(background="white")
+        dev_page.geometry("%dx%d" % (dev_page.winfo_screenwidth(), dev_page.winfo_screenheight()))
+        dev_page.title('Insert Password for Developer Mode')
+        dev_page.state('zoomed')
+        self.master.destroy()
+        self.master = dev_page
+        pass_frame = Frame(master=dev_page, bg="white")
+        pass_frame.pack(side = TOP)
+        input_text = StringVar()
+
+
+
+
+        self.master.mainloop()
+
     # Pop-up message to select stairs over elevator
     def stairs_or_el(self):
-        self.stairs = messagebox.askyesno(title = "Preference", message="Stairs or Elevator? \nYes: Stairs, No: Elevator")
-        self.select_service()
+        self.stairs = messagebox.askyesnocancel(title = "Preference", message="Stairs or Elevator? \nYes: Stairs, No: Elevator")
+        if self.stairs is not None:
+            self.select_service()
+
     def service_confirmation(self, args: Event):
         if not args.widget.curselection():
             return
@@ -198,22 +213,24 @@ class Wayfinder_UI:
                 self.selected = False
 
 # Function that draws lines for directions to follow
-def draw_path(page, start, goal):
-    # screen = Canvas(self.master, width= 600, height=550, background="black")
+def draw_path(page: Tk, start, goal):
+    #screen = Canvas(page, width= 600, height=550, background="black")
     # screen.pack(anchor='nw', fill='both', expand=1)
-    screen = Canvas(master=page, width=600, height=700)
-    screen.configure(background="white")
+    w = page.winfo_screenwidth()
+    h = page.winfo_screenheight()
+    screen = Canvas(master=page, width=w, height=h)
     screen.pack(anchor="center")
-    img_floor = ImageTk.PhotoImage(Image.open("floor_2.jpg"))
+    img_floor = Image.open("flr4.jpg")
+    width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
+    img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
+    screen.configure(background="white", width=img.width, height=height)
+    img_tk = ImageTk.PhotoImage(img)
+    screen.image = img_tk
+    #img_floor = img_floor.resize((500,500), Image.ANTIALIAS)
     # Play with position
-    screen.create_image(0,0, image= img_floor, anchor= "nw")
-    screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
+    screen.create_image(0,0, image= img_tk, anchor= "nw")
+    #screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
     page.mainloop()
-
-        
-    
-
-
 
 if __name__ == '__main__': 
     # Read json file for services and rooms 
@@ -222,13 +239,3 @@ if __name__ == '__main__':
     #print(services_from_jason)
     # Call Wayfinder UI
     wayfinder = Wayfinder_UI(services_from_jason)
-
-
- 
-    
-
-   
-
-
-
-
