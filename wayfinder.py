@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import Canvas
 import ttkbootstrap as ttkint
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageOps
 import json
 
 FONT = "Calibri 26 bold"
@@ -42,7 +42,7 @@ class Wayfinder_UI:
         window.title('Wayfinder')
         #window.focus_set()
         window.geometry("%dx%d" % (window.winfo_screenwidth(), window.winfo_screenheight()))
-        window.state('zoomed')
+        #window.state('zoomed')
         #window.geometry(self.SCREEN_DIMENSION)
         self.sel_service = "Second Floor Elevator"
 
@@ -114,7 +114,7 @@ class Wayfinder_UI:
         # Escape sequence for fullscreen mode
         page1.focus_set()
         page1.grid_columnconfigure(1, weight=5)
-        page1.state('zoomed')
+        #page1.state('zoomed')
         page1.bind("<Escape>", lambda e: page1.quit())
         self.master.destroy()
         self.master = page1
@@ -148,7 +148,7 @@ class Wayfinder_UI:
         mess = "Goal: "+ goal
         nav_label = Label(master= nav_page, text= "Wayfinder Navigation", font=FONT).pack()
         service_label = Label(master= nav_page, text= mess, font=FONT_SERVICES).pack()
-        nav_page.state('zoomed')
+        #nav_page.state('zoomed')
         #nav_page.focus_set()
         #label_mess = "Preview navigation to:"
         #label = ttk.Label(master= self.master, background= "White", text= label_mess, font=FONT)
@@ -170,7 +170,7 @@ class Wayfinder_UI:
         dev_page.configure(background="white")
         dev_page.geometry("%dx%d" % (dev_page.winfo_screenwidth(), dev_page.winfo_screenheight()))
         dev_page.title('Insert Password for Developer Mode')
-        dev_page.state('zoomed')
+        #dev_page.state('zoomed')
         self.master.destroy()
         self.master = dev_page
         pass_frame = Frame(master=dev_page, bg="white")
@@ -221,6 +221,7 @@ def draw_path(page: Tk, start, goal):
     screen = Canvas(master=page, width=w, height=h)
     screen.pack(anchor="center")
     img_floor = Image.open("flr4.jpg")
+    img_floor = ImageOps.exif_transpose(img_floor)
     width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
     img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
     screen.configure(background="white", width=img.width, height=height)
