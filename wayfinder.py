@@ -49,25 +49,23 @@ class Wayfinder_UI(threading.Thread):
         self.sel_service = "Second Floor Elevator"
 
         window.bind("<Escape>", lambda e: window.quit())
-        # self.root = window
-        self.root = window
-        title_label = Label(master= self.root, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
+        # self.master = window
+        self.master = window
+        title_label = Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
         img = ImageTk.PhotoImage(Image.open("lockwood_main.jpg"))
         panel = Label(window, image=img)
         panel.pack()
-        start_frame = Frame(master=self.root, bg="white")
+        start_frame = Frame(master=self.master, bg="white")
         start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = self.stairs_or_el)
         start_button.pack(side = 'left')
         start_frame.pack(pady=10)
-        dev_mode_frame = Frame(master=self.root, bg="white")
+        dev_mode_frame = Frame(master=self.master, bg="white")
         dev_mode_button = ttk.Button(master=dev_mode_frame, text= "Developer Mode", command = self.developer_mode)
         dev_mode_button.pack(side = 'left')
         dev_mode_frame.pack(pady=10)
         self.selected = False
-        # self.root.mainloop()
+        self.master.mainloop()
 
-    def run(self):
-        self.root.mainloop()
     # SECOND PAGE FOR SERVICE SELECTION
     # https://www.youtube.com/watch?v=wFyzmZVKPAw    useful video for multiple pages layout
             
@@ -86,7 +84,7 @@ class Wayfinder_UI(threading.Thread):
             floor_array = self.json_file_dict["service_group"][0][self.service_array[w]][0]
             list_services = flatten(list(floor_array.values()))
             # Listbox for rooms
-            room_lb = Listbox(self.root, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
+            room_lb = Listbox(self.master, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
             if w == -1:
                 for room in self.all_valid_serv:
                     room_lb.insert(tk.END, room)
@@ -106,7 +104,7 @@ class Wayfinder_UI(threading.Thread):
             # for room in list_services:
             #     room_lb.insert(tk.END, room)
             room_lb.bind('<Double-1>', self.service_confirmation)
-            self.root.mainloop()
+            self.master.mainloop()
                 
         #print("Start button pressed")
         # Create new page
@@ -121,8 +119,8 @@ class Wayfinder_UI(threading.Thread):
         page1.grid_columnconfigure(1, weight=5)
         #page1.state('zoomed')
         page1.bind("<Escape>", lambda e: page1.quit())
-        self.root.destroy()
-        self.root = page1
+        self.master.destroy()
+        self.master = page1
         self.sel_service = "All services"
 
         # Listbox for services
@@ -134,31 +132,31 @@ class Wayfinder_UI(threading.Thread):
         services_lb.grid(column=0, row=0, sticky='nw', padx=0, pady=2)
         services_lb.bind('<<ListboxSelect>>', onselect)
         services_lb.select_set(0)
-        room_lb = Listbox(self.root, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
+        room_lb = Listbox(self.master, font=FONT_SERVICES, name='room_list', selectmode="SINGLE")
         for room in self.all_valid_serv:
             room_lb.insert(tk.END, room)
         room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
         room_lb.bind('<Double-1>', self.service_confirmation)
-        self.root.mainloop()
+        self.master.mainloop()
        
     # THIRD PAGE FOR ACTUAL NAVIGATION
     # HERE THE CODE TO COMMUNICATE BETWEEN THE SELECTED SERVICE AND THE BLUETOOTH CODE
     def start_navigation(self, goal: StringVar):
-        self.root.destroy()
+        self.master.destroy()
         nav_page = Tk()
         nav_page.title('Wayfinder')
         #nav_page.geometry(self.SCREEN_DIMENSION)
         nav_page.geometry("%dx%d" % (nav_page.winfo_screenwidth(), nav_page.winfo_screenheight()))
-        self.root = nav_page
+        self.master = nav_page
         mess = "Goal: "+ goal
         nav_label = Label(master= nav_page, text= "Wayfinder Navigation", font=FONT).pack()
         service_label = Label(master= nav_page, text= mess, font=FONT_SERVICES).pack()
         #nav_page.state('zoomed')
         #nav_page.focus_set()
         #label_mess = "Preview navigation to:"
-        #label = ttk.Label(master= self.root, background= "White", text= label_mess, font=FONT)
+        #label = ttk.Label(master= self.master, background= "White", text= label_mess, font=FONT)
         #label.pack()
-        #label_ser = ttk.Label(master= self.root, background= "White", text= goal, font=FONT_SERVICES)
+        #label_ser = ttk.Label(master= self.master, background= "White", text= goal, font=FONT_SERVICES)
         #label_ser.pack()
 
         # Here the data coming from the beacon 
@@ -176,8 +174,8 @@ class Wayfinder_UI(threading.Thread):
         dev_page.geometry("%dx%d" % (dev_page.winfo_screenwidth(), dev_page.winfo_screenheight()))
         dev_page.title('Insert Password for Developer Mode')
         #dev_page.state('zoomed')
-        self.root.destroy()
-        self.root = dev_page
+        self.master.destroy()
+        self.master = dev_page
         pass_frame = Frame(master=dev_page, bg="white")
         pass_frame.pack(side = TOP)
         input_text = StringVar()
@@ -185,7 +183,7 @@ class Wayfinder_UI(threading.Thread):
 
 
 
-        self.root.mainloop()
+        self.master.mainloop()
 
     # Pop-up message to select stairs over elevator
     def stairs_or_el(self):
@@ -211,7 +209,7 @@ class Wayfinder_UI(threading.Thread):
             mess= "Selected service: \""
             mess = mess + str(sel_service)
             mess = mess + "\". \nWould you like to proceed?"
-            selection = messagebox.askyesno(title="Service confirmation", message=mess, parent=self.root)
+            selection = messagebox.askyesno(title="Service confirmation", message=mess, parent=self.master)
             if selection:
                 self.start_navigation(sel_service)
             else:
