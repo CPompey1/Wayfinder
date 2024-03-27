@@ -30,12 +30,19 @@ async def main():
     # navigation_thread.start()
     navigation_task = asyncio.create_task(runNavigation(manager))
     #start UI
-    wayfinderUI_task = asyncio.create_task(Wayfinder_UI(services_from_jason))
+    # wayfinderUI_task = asyncio.create_task(Wayfinder_UI(services_from_jason))
     
+    wayfinder = Wayfinder_UI(services_from_jason)
+    # wayfinder.start()
+    asyncio.create_task(wayfinder.run())
 
-    await navigation_task
-    await wayfinderUI_task
-    # await asyncio.gather(runNavigation(manager),
+    loop = asyncio.get_event_loop()
+    # await asyncio.gather(asyncio.create_task(runNavigation(manager)),
+    #                      asyncio.create_task(Wayfinder_UI(services_from_jason)))
+    # wayfinderUI = Wayfinder_UI(services_from_jason)
+    # await navigation_task
+    # await fuckit_task
+    # await asyncio.gather(asyncio.create_task(runNavigation(manager)),
     #                      wayfinderUI = asyncio.create_task(Wayfinder_UI(services_from_jason)))
 
     # asyncio.create_subprocess_exec()
@@ -49,14 +56,19 @@ async def runNavigation(manager):
         file.write(f"WHATS POPPINI")
     while True:
         closest_beacons = manager.get_closest()
-        
+        print("navigating")
         if not None in closest_beacons:
             print("Entering localization")
-            location = await tra_localization(closest_beacons,EMITTER_LOC_DICT)
-
+            # location = await tra_localization(closest_beacons,EMITTER_LOC_DICT)
+            # print(location)
             manager.clear_closest()
             print("********************************FULL*************************************************")
         else:
             print("not full\n")
 
+
+
+def fuckit():
+    while True:
+        print("Fuckit")
 asyncio.run(main())

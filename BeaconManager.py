@@ -5,13 +5,13 @@ from globals import EMITTER_LOC_DICT
 class BeaconManager:
     MAX_RSI = 200
     MAX_UNIQUE = 3
-    emitter_location_dic = {"DD:34:02:07:E3:0A": [7.85,-27.6,8.5],
-                        "DD:34:02:08:F9:FC": [56.6,-45.68,8.5],
-                        "DD:34:02:08:FD:1E": [75.44, -64.52, 8.5],
-                        "DD:34:02:08:FC:89": [75.44, 22.65, 3.17],
-                        "DD:34:02:08:FD:59": [57.19, -22.35, 8.5],
-                        "DD:34:02:08:FB:B1": [57.19, 37.98, 9.25],
-                        "DD:34:02:08:FC:48": [75.44, 22.65, 3.17]}
+    # emitter_location_dic = {"DD:34:02:07:E3:0A": [7.85,-27.6,8.5],
+    #                     "DD:34:02:08:F9:FC": [56.6,-45.68,8.5],
+    #                     "DD:34:02:08:FD:1E": [75.44, -64.52, 8.5],
+    #                     "DD:34:02:08:FC:89": [75.44, 22.65, 3.17],
+    #                     "DD:34:02:08:FD:59": [57.19, -22.35, 8.5],
+    #                     "DD:34:02:08:FB:B1": [57.19, 37.98, 9.25],
+    #                     "DD:34:02:08:FC:48": [75.44, 22.65, 3.17]}
 
     def __init__(self):
         self.scanner = BleakScanner() 
@@ -64,7 +64,7 @@ class BeaconManager:
         async for beacon in self.scanner.advertisement_data():
 
             #filter for only beacons in the emitter location dict
-            if not beacon[0].address in EMITTER_LOC_DICT: continue
+            # if not beacon[0].address in EMITTER_LOC_DICT: continue
             
 
             self.beacons[beacon[0].address] = beacon[0]
