@@ -7,6 +7,8 @@ import numpy as np
 import MPU9255
 import programKalman 
 
+#My name is Rupin and put files in the home folder and dont code in functions
+
 address = 0x68
 bus = smbus.SMBus(1)
 imu = MPU9255.MPU9255(bus, address)

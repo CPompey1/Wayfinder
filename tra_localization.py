@@ -12,12 +12,11 @@ import asyncio
 
 
 
-beaconManager = None
-file1 = None
+
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
 
 async def main():
-    global beaconManager, file1
+    beaconManager, file1 = None
     beaconManager = BeaconManager()
     await beaconManager.initialize_scanning()
     while (True):

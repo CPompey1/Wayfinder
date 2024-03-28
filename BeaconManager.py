@@ -32,7 +32,7 @@ class BeaconManager:
         await self.scanner.start()
         self.beaconUpdater = asyncio.create_task(self.update_beacons())
         # temp = asyncio.run(self.beaconUpdater)
-        self.loop = asyncio.get_event_loop()
+        
         await asyncio.sleep(5)
      
     #Returns beacon with smallest rssi value
