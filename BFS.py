@@ -192,15 +192,6 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
         complete_path = path_to_elevator + fixed_path + path_to_destination
         return complete_path
 
-    # if target_floor != 1 and start_floor == 1 and preference == "elevator":
-    #     nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
-    #     path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
-    #     target_floor_elevator = find_nearest_elevator_for_floor(input_nodes, target_floor)
-    #     fixed_path = [106, 105, 104, 102, 101, 17, target_floor_elevator]
-    #     path_to_destination = bfs_same_floor(input_graph, target_floor_elevator, target_node, input_nodes, target_floor)
-    #     complete_path = path_to_elevator + fixed_path + path_to_destination
-    #     return complete_path
-
     if target_floor != 1 and preference == "elevator":
         nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
         path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
@@ -247,7 +238,7 @@ def generate_directions(path, nodes, start_location, end_location):
     if start_location and start_location != nodes[start_node_id]['location']:
         start_direction = get_direction(start_location, nodes[start_node_id]['location'])
         start_distance = calculate_distance(start_location[:2], nodes[start_node_id]['location'][:2])
-        directions.append(f"Start at your location and go {start_direction} for {round(start_distance)} feet to reach node {start_node_id}")
+        directions.append(f"Start at your location and go {start_direction} for {round(start_distance)} feet")
 
     for i in range(len(path) - 1):
         current_node_id = path[i]
@@ -270,12 +261,12 @@ def generate_directions(path, nodes, start_location, end_location):
                 else:
                     directions.append(f"Go {direction} for {round(distance)} feet and pass by the {node_type}")
             else:
-                directions.append(f"Go {direction} for {round(distance)} feet to reach node {next_node_id}")
+                directions.append(f"Go {direction} for {round(distance)} feet")
 
     if end_location and end_location != nodes[end_node_id]['location']:
         end_direction = get_direction(nodes[end_node_id]['location'], end_location)
         end_distance = calculate_distance(nodes[end_node_id]['location'][:2], end_location[:2])
-        directions.append(f"From node {end_node_id}, go {end_direction} for {round(end_distance)} feet to reach your destination")
+        directions.append(f"Go {end_direction} for {round(end_distance)} feet to reach your destination")
 
     return directions
 
