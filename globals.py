@@ -15,6 +15,8 @@ ELEVATOR_PIXEL_X = 130
 ELEVATOR_PIXEL_Y = 403
 PIXELS_PER_GRID = 17
 
+IMU_ADDR = 0x68
+IMU_BUS = 1
 class SharedData:
     def __init__(self) -> None:
         self.lock = threading.Lock()

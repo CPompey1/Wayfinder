@@ -1,13 +1,59 @@
 import os
 import sys
+import threading
 import time
-from globals import SharedData
+from globals import IMU_ADDR, IMU_BUS, sharedData
 import smbus
 import numpy as np
 
 import MPU9255
 import programKalman 
 
+
+class MpuClass:
+    
+    def __init__(self):
+        self.bus = smbus.SMBus(1)
+        self.imu = MPU9255.MPU9255(IMU_BUS, IMU_ADDR)
+        self.imu.begin()
+        
+        self.sensorfusion = programKalman.programKalman()
+        self.currTime = time.time()
+
+        self._read_sensor(self)
+
+        self.mpu_thread = threading.Thread(target=runMpu)
+        self.mpu_thread.start()
+    
+    def get_values(self):
+        with sharedData.lock:
+            values = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
+        return values
+    def _read_sensor(self):
+        self.imu.Sensor()
+        self.imu.computeOrientation()
+        self.sensorfusion.roll = self.imu.roll
+        self.sensorfusion.pitch = self.imu.pitch
+        self.sensorfusion.yaw = self.imu.yaw
+
+    def kalman_filter(self):
+        while True and not sharedData.closing:
+            self.imu.readSensor()
+            self.imu.computeOrientation()
+            newTime = time.time()
+            dt = newTime - currTime
+            currTime = newTime
+
+            self.sensorfusion.computeAndUpdateRollPitchYaw(self.imu.AccelVals[0], self.imu.AccelVals[1], self.imu.AccelVals[2], self.imu.GyroVals[0], self.imu.GyroVals[1], self.imu.GyroVals[2],\
+                                                        self.imu.MagVals[0], self.imu.MagVals[1], self.imu.MagVals[2], dt)
+            time.sleep(0.01)
+    
+    def close(self):
+        if not sharedData.closing: sharedData.closing = True
+        self.mpu_thread.join()
+
+
+    
 
 
 def runMpu():
@@ -30,9 +76,8 @@ def runMpu():
     sensorfusion.pitch = imu.pitch
     sensorfusion.yaw = imu.yaw
 
-    count = 0
     currTime = time.time()
-    while True and not SharedData.closing:
+    while True and not sharedData.closing:
         
         imu.readSensor()
         imu.computeOrientation()
@@ -44,5 +89,6 @@ def runMpu():
                                                     imu.MagVals[0], imu.MagVals[1], imu.MagVals[2], dt)
 
         print("Kalmanroll:{0} KalmanPitch:{1} KalmanYaw:{2} ".format(sensorfusion.roll, sensorfusion.pitch, sensorfusion.yaw))
+
 
         time.sleep(0.01)

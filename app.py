@@ -10,6 +10,7 @@ import json
 import threading
 import asyncio
 from BFS import BFS
+from MPU.run_mpu import MpuClass
 from globals import *
 from BeaconManager import BeaconManager
 if not SIMULATION: from MPU.run_mpu import runMpu
@@ -33,7 +34,7 @@ class Wayfinder_UI(threading.Thread):
         self.manager.initialize_scanning()
         self.bfs = BFS()
         self.navigation_thread = None
-
+        self.mpu = MpuClass()
         if not SIMULATION: 
             self.mpu_thread = threading.Thread(target=runMpu, daemon=True)
             self.mpu_thread.start()
@@ -280,7 +281,7 @@ def draw_path(page: Tk, start, goal):
     h = page.winfo_screenheight()
     screen = Canvas(master=page, width=w, height=h)
     screen.pack(anchor="center")
-    img_floor = Image.open("floor_1.jpg")
+    img_floor = Image.open("flr4.jpg")
     img_floor = ImageOps.exif_transpose(img_floor)
     width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
     img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
@@ -312,6 +313,7 @@ def draw_path(page: Tk, start, goal):
     line_start = grid2Pixel([0,0])
     line_stop = grid2Pixel([2,2])
     screen.create_line(line_start[0],line_start[1],line_stop[0],line_stop[1], fill="green", width = 3)
+   
     screen.create_line(box0s[0],box0s[1],box0e[0],box0e[1], fill="red", width = 3)
     screen.create_line(box1s[0],box1s[1],box1e[0],box1e[1], fill="red", width = 3)
     screen.create_line(box2s[0],box2s[1],box2e[0],box2e[1], fill="red", width = 3)
@@ -319,7 +321,10 @@ def draw_path(page: Tk, start, goal):
 
 def repaint(nav_page: Tk, start, goal):
     
-    #NEED A CURRENT USER POSITION (GRID SPACE)
+    #SEPARATE START AND GOAL INTO BEFORE STAIRS AND AFTER STAIRS
+    #BEFORE_STAIRS = lines_before_stairs(start,goal)
+    #AFTER_STAIRS = lines_after_stairs(start,goal)
+    #NEED USER POSITION = NEAREST_NODE_ID
 
     draw_path(nav_page, start, goal)
     while True:
@@ -327,15 +332,59 @@ def repaint(nav_page: Tk, start, goal):
         time.sleep(2)
 
         #GET USER ORIENTATION FROM IMU (SHARED DATA)
+        #GET DIRECTION OF MOVEMENT FROM IMU (INCOMPLETE RIGHT NOW)
+
         #GET USER LOCATION FROM NAVIGATION (SHARED DATA)
 
         #CONVERT USER POSITION TO GRID SPACE
-        #IF USER POSITION != CURRENT USER POSITION
-            #LOOP THROUGH PATH OF NODES AND CHECK THEIR POSITIONS
+
+        #POSSIBLE LATER
+            #DIRECTION OF MOVEMENT FROM IMU AND COMPARE IT TO DIRECTION OF MOVEMENT OF NAVIGATION
+            #IF THEY ARE WITHIN +- 45 DEGREES, ACCEPTABLE
+            #|---|---|---|
+            #| o | o | o |  IF MOVEMENT FROM IMU IS POSITIVE UP, THEN THREE GRID COORDINATES ARE VALID
+            #|---|---|---|
+            #| x | H | x |
+            #|---|---|---|
+            #| x | x | x |
+            #|---|---|---|
         
+            #|---|---|---|
+            #| o | o | X |  IF MOVEMENT FROM IMU IS DIAGONAL UP AND LEFT, THEN THREE GRID COORDINATES ARE VALID
+            #|---|---|---|
+            #| o | H | x |
+            #|---|---|---|
+            #| x | x | x |
+            #|---|---|---|
+
+        
+
+        #IF USERPOSITION != CURRENT USER POSITION
+
+            #USERPOSITION = CURRENT USER POSITION
+            #IF BEFORE STAIRS IS NOT EMPTY
+                #PATH OF NODES = BEFORE STAIRS
+            #ELSE
+                #PATH OF NODES = AFTER STAIRS       #AFTER STAIRS SHOULD ONLY START AFTER REACHING THE NEXT FLOOR
+                
+            #LOOP THROUGH PATH OF NODES AND CHECK AGAINST POSITIONS
+                #IF CURRENT USER POSITION EXISTS IN PATH
+                    #REMOVE THE NODE FROM THE PATH (START AND GOAL VARIABLES LEN - 1)
+                #ELSE IF CURRENT USER POSITION EXISTS IN LIST OF ALL NODES IN THE CURRENT FLOOR
+                    #ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
+        
+            #THEN, REDRAW
+        
+
+        #POSSIBLE LATER
+            #IF THE USER IMAGE HAS A DIRECTION IT CAN FACE
+                #REDRAW WHEN IMU ORIENTATION CHANGES BY INCREMENTS OF 15 DEGREES
+                #THIS MEANS ONLY REDRAW WHEN IMU ORIENTATION CLOSEST ANGLE IS A DIFFERENT MULTIPLE OF 15 DEGREES
+
+
         #hey
-def grid2Pixel(inp):
-    return [(inp[0] * PIXELS_PER_GRID) + ELEVATOR_PIXEL_X, ELEVATOR_PIXEL_Y - (inp[1] * PIXELS_PER_GRID) ]
+def grid2Pixel(inp,floor):
+    return [(inp[0] * PIXELS_PER_GRID_FLR4) + ELEVATOR_PIXEL_X_FLR4, ELEVATOR_PIXEL_Y_FLR4- (inp[1] * PIXELS_PER_GRID_FLR4) ]
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
