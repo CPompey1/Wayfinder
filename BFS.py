@@ -188,10 +188,10 @@ class BFS:
 
         if target_floor == 1 and start_floor != 1 and preference == "elevator":
             nearest_elevator_on_current_floor = self.find_nearest_elevator(self, start_node, input_nodes, input_graph, start_floor)
-            path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
+            path_to_elevator = self.bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
             fixed_path = [17, 101, 102, 104, 105, 106]
 
-            path_to_destination = bfs(input_graph, 97, target_node, input_nodes, preference)
+            path_to_destination = self.bfs(input_graph, 97, target_node, input_nodes, preference)
             complete_path = path_to_elevator + fixed_path + path_to_destination
             return complete_path
 
@@ -206,7 +206,7 @@ class BFS:
 
         if target_floor != 1 and preference == "elevator":
             nearest_elevator_on_current_floor = self.find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
-            path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
+            path_to_elevator = self.bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
             target_floor_elevator = self.find_nearest_elevator_for_floor(input_nodes, target_floor)
             path_to_destination = self.bfs_same_floor(input_graph, target_floor_elevator, target_node, input_nodes, target_floor)
             if start_floor == 1:
@@ -217,10 +217,10 @@ class BFS:
             return complete_path
 
         if target_floor == 1 and start_floor != 1 and preference == "stairs":
-            return bfs(input_graph, start_node, target_node, input_nodes, preference)
+            return self.bfs(input_graph, start_node, target_node, input_nodes, preference)
 
         if target_floor != 1 and start_floor != 1 and preference == "stairs":
-            return bfs(input_graph, start_node, target_node, input_nodes, preference)
+            return self.bfs(input_graph, start_node, target_node, input_nodes, preference)
 
         if target_floor == start_floor:
             return self.bfs_same_floor(input_graph, start_node, target_node, input_nodes, preference)
@@ -284,19 +284,20 @@ class BFS:
 
 
 
-bfs = BFS()
-# below is how you would call different functions
-# things I need before BFS can run
-user_location_feet = (45, 65, 1)
-dest_id = "Third Floor Bathroom_a"
-preference = "stairs"
+def testScript():
+    bfs = BFS()
+    # below is how you would call different functions
+    # things I need before BFS can run
+    user_location_feet = (45, 65, 1)
+    dest_id = "Third Floor Bathroom_a"
+    preference = "stairs"
 
-end_location = bfs.find_destination_by_id(dest_id, bfs.endpoints)
-nearest_node_id = bfs.find_nearest_node_feet(user_location_feet, bfs.nodes)
-print(f"Your Nearest Node is:{nearest_node_id}")
-shortest_path = bfs.find_path(user_location_feet, dest_id, bfs.nodes, bfs.graph, bfs.endpoints, preference)
-print(f"The shortest path from your current location to your destination is: {shortest_path}")
+    end_location = bfs.find_destination_by_id(dest_id, bfs.endpoints)
+    nearest_node_id = bfs.find_nearest_node_feet(user_location_feet, bfs.nodes)
+    print(f"Your Nearest Node is:{nearest_node_id}")
+    shortest_path = bfs.find_path(user_location_feet, dest_id, bfs.nodes, bfs.graph, bfs.endpoints, preference)
+    print(f"The shortest path from your current location to your destination is: {shortest_path}")
 
-directions = bfs.generate_directions(shortest_path, bfs.nodes, user_location_feet, end_location)
-for direction in directions:
-    print(direction)
+    directions = bfs.generate_directions(shortest_path, bfs.nodes, user_location_feet, end_location)
+    for direction in directions:
+        print(direction)

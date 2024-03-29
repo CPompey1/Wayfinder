@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
@@ -8,6 +9,7 @@ from PIL import ImageTk, Image, ImageOps
 import json
 import threading
 import asyncio
+from BFS import BFS
 from globals import *
 from BeaconManager import BeaconManager
 if not SIMULATION: from MPU.run_mpu import runMpu
@@ -29,7 +31,7 @@ class Wayfinder_UI(threading.Thread):
         #initliize beacon manager and threads
         self.manager = BeaconManager()
         self.manager.initialize_scanning()
-
+        self.bfs = BFS()
         self.navigation_thread = None
 
         if not SIMULATION: 
@@ -154,6 +156,11 @@ class Wayfinder_UI(threading.Thread):
     # THIRD PAGE FOR ACTUAL NAVIGATION
     # HERE THE CODE TO COMMUNICATE BETWEEN THE SELECTED SERVICE AND THE BLUETOOTH CODE
     def start_navigation(self, goal: StringVar):
+        #stubd data. Must be updated
+        user_location_feet = (45, 65, 1)
+        dest_id = "Third Floor Bathroom_a"
+        preference = "stairs"
+
         self.master.destroy()
         nav_page = Tk()
         self.navigation_thread = threading.Thread(target=runNavigation, args=(self.manager,))
@@ -179,16 +186,32 @@ class Wayfinder_UI(threading.Thread):
         start = [130,0]
 
         # Destination comes from JSON file and user selection
-        #eleveator pixel origin (130,140)
-        goal = [130, 400]
+        #eleveator pixel origin (130,400)
+        goal = [130, 403]
         
-        start1 = [150,0]
+        end_location = self.bfs.find_destination_by_id(dest_id, self.bfs.endpoints)
+        nearest_node_id = self.bfs.find_nearest_node_feet(user_location_feet, self.bfs.nodes)
+        nodePath = self.bfs.find_path(user_location_feet, dest_id, self.bfs.nodes, self.bfs.graph, self.bfs.endpoints, preference)
+        locations = {}
+        # for node in self.bfs.nodes.keys():
+        #     if node in nodePath:
+        #         locations[node] = self.bfs.nodes[node]["location"]
+        
+        
+        
+        start = []
+        goal = []
+        start.append(self.bfs.nodes[nearest_node_id]["location"][0:2])
+        goal.append(self.bfs.nodes[nodePath[0]]["location"][0:2])
+        for i in range(len(nodePath)):
+            if i < len(nodePath) - 1:
+                start.append(self.bfs.nodes[nodePath[i]]["location"][0:2])
+                goal.append(self.bfs.nodes[nodePath[i+1]]["location"][0:2])
+            locations[nodePath[i]] = self.bfs.nodes[nodePath[i]]["location"]
 
-        # Destination comes from JSON file and user selection
-        #eleveator pixel origin (130,140)
-        goal1 = [150, 400]
-
-        draw_path(nav_page, start, goal)
+        
+        repaint(nav_page, start, goal)
+        #draw_path(nav_page, start, goal)
         nav_page.mainloop()
 
     # DEVELOPER MODE TO CHECK ON EMITTERS FUNCTIONALITIES
@@ -250,11 +273,14 @@ class Wayfinder_UI(threading.Thread):
 def draw_path(page: Tk, start, goal):
     #screen = Canvas(page, width= 600, height=550, background="black")
     # screen.pack(anchor='nw', fill='both', expand=1)
+
+    # NEED TO CLEAR THE SCREEN HERE FIRST
+
     w = page.winfo_screenwidth()
     h = page.winfo_screenheight()
     screen = Canvas(master=page, width=w, height=h)
     screen.pack(anchor="center")
-    img_floor = Image.open("flr4.jpg")
+    img_floor = Image.open("floor_1.jpg")
     img_floor = ImageOps.exif_transpose(img_floor)
     width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
     img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
@@ -264,21 +290,52 @@ def draw_path(page: Tk, start, goal):
     #img_floor = img_floor.resize((500,500), Image.ANTIALIAS)
     # Play with position
     screen.create_image(0,0, image= img_tk, anchor= "nw")
-    screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
+    #screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
     page.update()
     
-    start1 = [150,0]
+    #start1 = [150,0]
+    for i in range(0,len(start),1):
+        screen.create_line(grid2Pixel(start[i])[0] - 50,grid2Pixel(start[i])[1] + 100,grid2Pixel(goal[i])[0] - 50,grid2Pixel(goal[i])[1] + 100, fill="blue", width = 3)
 
     # Destination comes from JSON file and user selection
-    #eleveator pixel origin (130,140)
-    goal1 = [150, 400]
-    screen.create_line(start1[0],start1[1],goal1[0], goal1[1], fill="red", width = 3)
+    #eleveator pixel origin (130,403)
+    #goal1 = [150, 400]
+    box0s = [130, 403]
+    box0e = [130, 387]
+    box1s = [130, 403]
+    box1e = [146, 403]
+    box2s = [146, 403]
+    box2e = [146, 387]
+    box3s = [146, 387]
+    box3e = [130, 387]
+    #screen.create_line(start1[0],start1[1],goal1[0], goal1[1], fill="red", width = 3)
+    line_start = grid2Pixel([0,0])
+    line_stop = grid2Pixel([2,2])
+    screen.create_line(line_start[0],line_start[1],line_stop[0],line_stop[1], fill="green", width = 3)
+    screen.create_line(box0s[0],box0s[1],box0e[0],box0e[1], fill="red", width = 3)
+    screen.create_line(box1s[0],box1s[1],box1e[0],box1e[1], fill="red", width = 3)
+    screen.create_line(box2s[0],box2s[1],box2e[0],box2e[1], fill="red", width = 3)
+    screen.create_line(box3s[0],box3s[1],box3e[0],box3e[1], fill="red", width = 3)
 
+def repaint(nav_page: Tk, start, goal):
+    
+    #NEED A CURRENT USER POSITION (GRID SPACE)
+
+    draw_path(nav_page, start, goal)
     while True:
-        page.update()
-        sleep(2)
+        nav_page.update()
+        time.sleep(2)
+
+        #GET USER ORIENTATION FROM IMU (SHARED DATA)
+        #GET USER LOCATION FROM NAVIGATION (SHARED DATA)
+
+        #CONVERT USER POSITION TO GRID SPACE
+        #IF USER POSITION != CURRENT USER POSITION
+            #LOOP THROUGH PATH OF NODES AND CHECK THEIR POSITIONS
         
-    #hey
+        #hey
+def grid2Pixel(inp):
+    return [(inp[0] * PIXELS_PER_GRID) + ELEVATOR_PIXEL_X, ELEVATOR_PIXEL_Y - (inp[1] * PIXELS_PER_GRID) ]
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
@@ -300,7 +357,8 @@ def runNavigation(manager):
             manager.clear_closest()
             print("********************************FULL*************************************************")
         else:
-            print("not full\n")
+            # print("not full\n")
+            pass
 
 async def main():
     # Read json file for services and rooms 
