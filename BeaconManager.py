@@ -45,13 +45,9 @@ class BeaconManager:
         return out
     def clear_unique_beacons(self):
         self.numUnique = 0
-<<<<<<< HEAD
         for i in range(len(self.uniqueBeacons[0])):
             self.uniqueBeacons[0][i] = None
             self.uniqueBeacons[1][i] = None
-=======
-        self.uniqueBeacons = {}
->>>>>>> 613788936c841f835555f6e6c6fc2a0049f2c710
 
     async def update_beacons(self):
         #advertisement (BLEDevice,AdvertisementData)
