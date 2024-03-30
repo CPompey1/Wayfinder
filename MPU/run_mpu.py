@@ -2,8 +2,8 @@ import os
 import sys
 import threading
 import time
-from globals import IMU_ADDR, IMU_BUS, sharedData
-import smbus
+from globals import IMU_ADDR, IMU_BUS, SIMULATION, sharedData
+if not SIMULATION: import smbus
 import numpy as np
 
 from MPU import MPU9255
@@ -11,8 +11,9 @@ from MPU import programKalman
 
 
 class MpuClass:
-    
     def __init__(self):
+        if SIMULATION:
+            return
         self.bus = smbus.SMBus(IMU_BUS)
         self.imu = MPU9255.MPU9255(self.bus,IMU_ADDR)
         self.imu.begin()
@@ -26,9 +27,14 @@ class MpuClass:
         self.mpu_thread.start()
     
     def get_values(self):
+        if SIMULATION: 
+            return(1,1,1)
+        
         with sharedData.lock:
-            values = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
-        return values
+            sharedData.values = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
+        
+        return sharedData.values
+
     def _read_sensor(self):
         self.imu.readSensor()
         self.imu.computeOrientation()
@@ -37,7 +43,8 @@ class MpuClass:
         self.sensorfusion.yaw = self.imu.yaw
 
     def kalman_filter(self):
-        while True and not sharedData.closing:
+        while True and not sharedData.closing and not SIMULATION:
+
             self.imu.readSensor()
             self.imu.computeOrientation()
             newTime = time.time()

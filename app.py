@@ -36,6 +36,7 @@ class Wayfinder_UI(threading.Thread):
         self.navigation_thread = None
         self.mpu = MpuClass()
         if not SIMULATION: 
+            
             self.mpu_thread = threading.Thread(target=runMpu, daemon=True)
             self.mpu_thread.start()
         else:
@@ -202,16 +203,16 @@ class Wayfinder_UI(threading.Thread):
         
         start = []
         goal = []
-        start.append(self.bfs.nodes[nearest_node_id]["location"][0:2])
-        goal.append(self.bfs.nodes[nodePath[0]]["location"][0:2])
+        start.append(self.bfs.nodes[nearest_node_id]["location"][0:3])
+        goal.append(self.bfs.nodes[nodePath[0]]["location"][0:3])
         for i in range(len(nodePath)):
             if i < len(nodePath) - 1:
-                start.append(self.bfs.nodes[nodePath[i]]["location"][0:2])
-                goal.append(self.bfs.nodes[nodePath[i+1]]["location"][0:2])
+                start.append(self.bfs.nodes[nodePath[i]]["location"][0:3])
+                goal.append(self.bfs.nodes[nodePath[i+1]]["location"][0:3])
             locations[nodePath[i]] = self.bfs.nodes[nodePath[i]]["location"]
 
         
-        repaint(nav_page, start, goal)
+        self.repaint(nav_page, start, goal)
         #draw_path(nav_page, start, goal)
         nav_page.mainloop()
 
@@ -310,8 +311,8 @@ def draw_path(page: Tk, start, goal):
     box3s = [146, 387]
     box3e = [130, 387]
     #screen.create_line(start1[0],start1[1],goal1[0], goal1[1], fill="red", width = 3)
-    line_start = grid2Pixel([0,0])
-    line_stop = grid2Pixel([2,2])
+    line_start = grid2Pixel([0,0],FLOOR_4)
+    line_stop = grid2Pixel([2,2],FLOOR_4)
     screen.create_line(line_start[0],line_start[1],line_stop[0],line_stop[1], fill="green", width = 3)
    
     screen.create_line(box0s[0],box0s[1],box0e[0],box0e[1], fill="red", width = 3)
@@ -319,24 +320,39 @@ def draw_path(page: Tk, start, goal):
     screen.create_line(box2s[0],box2s[1],box2e[0],box2e[1], fill="red", width = 3)
     screen.create_line(box3s[0],box3s[1],box3e[0],box3e[1], fill="red", width = 3)
 
-def repaint(nav_page: Tk, start, goal):
+def repaint(self,nav_page: Tk, start, goal):
     
     #SEPARATE START AND GOAL INTO BEFORE STAIRS AND AFTER STAIRS
     #BEFORE_STAIRS = lines_before_stairs(start,goal)
+    before_stairs = []
     #AFTER_STAIRS = lines_after_stairs(start,goal)
+    after_stairs = []
     #NEED USER POSITION = NEAREST_NODE_ID
+    # nearest_node = self.bfs.find_nearest_node_feet()
+    # nearest_node_location = self.bfs.nodes[nearest_node]["location"]
+    # floor = nearest_node_location[2]
 
-    draw_path(nav_page, start, goal)
+    # draw_path(nav_page, start, goal)
     while True:
-        nav_page.update()
-        time.sleep(2)
-
+        nearest_node = self.bfs.find_nearest_node_feet()
+        nearest_node_location = self.bfs.nodes[nearest_node]["location"]
+        floor = nearest_node_location[2]
+        
         #GET USER ORIENTATION FROM IMU (SHARED DATA)
+        orientation = self.mpu.get_values()
+        
         #GET DIRECTION OF MOVEMENT FROM IMU (INCOMPLETE RIGHT NOW)
 
         #GET USER LOCATION FROM NAVIGATION (SHARED DATA)
+        with sharedData.lock:
+            user_location = sharedData.estimated_location
 
+        for field in range(len(user_location)):
+            user_location[field] = user_location[field]/6
+        
         #CONVERT USER POSITION TO GRID SPACE
+        user_location_grid_tra = grid2Pixel(user_location)
+        user_location_grid_bfs = nearest_node_location[0:2]
 
         #POSSIBLE LATER
             #DIRECTION OF MOVEMENT FROM IMU AND COMPARE IT TO DIRECTION OF MOVEMENT OF NAVIGATION
@@ -360,19 +376,37 @@ def repaint(nav_page: Tk, start, goal):
         
 
         #IF USERPOSITION != CURRENT USER POSITION
-
+        if user_location_grid_bfs != user_location_grid_tra:
             #USERPOSITION = CURRENT USER POSITION
+            user_position = user_location_grid_tra
             #IF BEFORE STAIRS IS NOT EMPTY
+            if len(before_stairs) > 0:
                 #PATH OF NODES = BEFORE STAIRS
+                node_path = before_stairs
             #ELSE
                 #PATH OF NODES = AFTER STAIRS       #AFTER STAIRS SHOULD ONLY START AFTER REACHING THE NEXT FLOOR
-                
+                node_path = after_stairs
             #LOOP THROUGH PATH OF NODES AND CHECK AGAINST POSITIONS
+            
+            found_node_in_path = False
+            for i in range(len(node_path)):
                 #IF CURRENT USER POSITION EXISTS IN PATH
+                if user_position == node_path[i]["location"]:
                     #REMOVE THE NODE FROM THE PATH (START AND GOAL VARIABLES LEN - 1)
-                #ELSE IF CURRENT USER POSITION EXISTS IN LIST OF ALL NODES IN THE CURRENT FLOOR
-                    #ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
-        
+                    node_path = node_path.remove(i)
+                    found_node_in_path = True
+            
+            #ELSE IF CURRENT USER POSITION EXISTS IN LIST OF ALL NODES IN THE CURRENT FLOOR
+            if nearest_node_location in self.bfs.node:
+                #ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
+                tmp = [nearest_node_location[0],
+                       nearest_node_location[1],
+                       floor]
+                
+                for node in self.bfs.nodes:
+                    if tmp == node["location"]:
+                        node_path.insert(0,tmp)
+                
             #THEN, REDRAW
         
 
@@ -383,8 +417,14 @@ def repaint(nav_page: Tk, start, goal):
 
 
         #hey
+
+            nav_page.update()
+            time.sleep(2)
+
 def grid2Pixel(inp,floor):
-    return [(inp[0] * PIXELS_PER_GRID_FLR4) + ELEVATOR_PIXEL_X_FLR4, ELEVATOR_PIXEL_Y_FLR4- (inp[1] * PIXELS_PER_GRID_FLR4) ]
+    match(floor):
+        case FLOOR_4:
+            return [(inp[0] * PIXELS_PER_GRID_FLR4) + ELEVATOR_PIXEL_X_FLR4, ELEVATOR_PIXEL_Y_FLR4- (inp[1] * PIXELS_PER_GRID_FLR4) ]
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):

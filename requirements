@@ -1,0 +1,7 @@
+smbus
+numpy
+ttkbootstrap
+config
+bleak
+scipy
+easydict

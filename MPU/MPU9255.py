@@ -4,7 +4,9 @@ import sys
 import time
 from json import JSONEncoder
 import json
-import smbus
+
+from globals import SIMULATION
+if not SIMULATION:import smbus
 
 from MPU import config
 
