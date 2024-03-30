@@ -6,21 +6,21 @@ from globals import IMU_ADDR, IMU_BUS, sharedData
 import smbus
 import numpy as np
 
-import MPU9255
-import programKalman 
+from MPU import MPU9255
+from MPU import programKalman 
 
 
 class MpuClass:
     
     def __init__(self):
-        self.bus = smbus.SMBus(1)
-        self.imu = MPU9255.MPU9255(IMU_BUS, IMU_ADDR)
+        self.bus = smbus.SMBus(IMU_BUS)
+        self.imu = MPU9255.MPU9255(self.bus,IMU_ADDR)
         self.imu.begin()
         
         self.sensorfusion = programKalman.programKalman()
         self.currTime = time.time()
 
-        self._read_sensor(self)
+        self._read_sensor()
 
         self.mpu_thread = threading.Thread(target=runMpu)
         self.mpu_thread.start()
@@ -30,7 +30,7 @@ class MpuClass:
             values = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
         return values
     def _read_sensor(self):
-        self.imu.Sensor()
+        self.imu.readSensor()
         self.imu.computeOrientation()
         self.sensorfusion.roll = self.imu.roll
         self.sensorfusion.pitch = self.imu.pitch

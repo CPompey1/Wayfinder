@@ -6,7 +6,7 @@ from json import JSONEncoder
 import json
 import smbus
 
-import config
+from MPU import config
 
 class MPU9255:
 	"""
