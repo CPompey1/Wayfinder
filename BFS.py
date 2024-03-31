@@ -26,7 +26,7 @@ endpoints = data["destinations"]
 def calculate_distance(point1, point2):
     x1, y1 = point1[:2]
     x2, y2 = point2[:2]
-    distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)*6
     return distance
 
 
