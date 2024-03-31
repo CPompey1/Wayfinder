@@ -384,7 +384,18 @@ def repaint(nav_page: Tk, start, goal):
 
         #hey
 def grid2Pixel(inp,floor):
-    return [(inp[0] * PIXELS_PER_GRID_FLR4) + ELEVATOR_PIXEL_X_FLR4, ELEVATOR_PIXEL_Y_FLR4- (inp[1] * PIXELS_PER_GRID_FLR4) ]
+    if(floor == 0):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_B) + ELEVATOR_PIXEL_X_FLOOR_B + (PIXELS_PER_GRID_FLOOR_B / 2), ELEVATOR_PIXEL_Y_FLOOR_B - (inp[1] * PIXELS_PER_GRID_FLOOR_B) - (PIXELS_PER_GRID_FLOOR_B / 2)]
+    elif(floor == 1):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_1) + ELEVATOR_PIXEL_X_FLOOR_1 + (PIXELS_PER_GRID_FLOOR_1 / 2), ELEVATOR_PIXEL_Y_FLOOR_1 - (inp[1] * PIXELS_PER_GRID_FLOOR_1) - (PIXELS_PER_GRID_FLOOR_1 / 2)]
+    elif(floor == 2):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_2) + ELEVATOR_PIXEL_X_FLOOR_2 + (PIXELS_PER_GRID_FLOOR_2 / 2), ELEVATOR_PIXEL_Y_FLOOR_2 - (inp[1] * PIXELS_PER_GRID_FLOOR_2) - (PIXELS_PER_GRID_FLOOR_2 / 2)]
+    elif(floor == 3):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_3) + ELEVATOR_PIXEL_X_FLOOR_3 + (PIXELS_PER_GRID_FLOOR_3 / 2), ELEVATOR_PIXEL_Y_FLOOR_3 - (inp[1] * PIXELS_PER_GRID_FLOOR_3) - (PIXELS_PER_GRID_FLOOR_3 / 2)]
+    elif(floor == 4):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_4) + ELEVATOR_PIXEL_X_FLOOR_4 + (PIXELS_PER_GRID_FLOOR_4 / 2), ELEVATOR_PIXEL_Y_FLOOR_4 - (inp[1] * PIXELS_PER_GRID_FLOOR_4) - (PIXELS_PER_GRID_FLOOR_4 / 2)]
+    else:
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_5) + ELEVATOR_PIXEL_X_FLOOR_5 + (PIXELS_PER_GRID_FLOOR_5 / 2), ELEVATOR_PIXEL_Y_FLOOR_5 - (inp[1] * PIXELS_PER_GRID_FLOOR_5) - (PIXELS_PER_GRID_FLOOR_5 / 2)]
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
