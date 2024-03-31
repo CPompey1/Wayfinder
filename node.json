@@ -224,7 +224,7 @@
     {"dest_id": "Fourth Floor Stairs_a", "location_x": -2, "location_y": 2, "location_z": 4, "connections":[38, 65, 42, 41, 26, 101, 9, 71]},
     {"dest_id": "Fourth Floor Stairs_b", "location_x": -7, "location_y": 17, "location_z": 4, "connections":[43, 45,  44, 28, 98, 59, 74]},
     {"dest_id": "Fourth Floor Stairs_c", "location_x": 13, "location_y": -2, "location_z": 4, "connections":[58, 60,  59, 31, 115, 5, 49]},
-    {"dest_id": "Fourth Floor Stairs_d", "location_x": 8, "location_y": 28, "location_z": 4, "connections":[48, 50, 53,  32, 49, 37, 100]},
+    {"dest_id": "Fourth Floor Stairs_d", "location_x": 8, "location_y": 23, "location_z": 4, "connections":[48, 50, 53,  32, 49, 37, 100]},
 
     {"dest_id": "Fifth Floor Stairs_a", "location_x": -2, "location_y": 2, "location_z": 5, "connections":[72, 68, 92, 71, 41, 26, 101, 9]},
     {"dest_id": "Fifth Floor Stairs_b", "location_x": -7, "location_y": 17, "location_z": 5, "connections":[73, 75,  44, 74, 59, 28, 98]},
