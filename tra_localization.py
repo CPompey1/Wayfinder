@@ -2,37 +2,55 @@ from scipy.optimize import minimize
 import numpy as np
 from BeaconManager import BeaconManager
 import math
+import time
+import asyncio
+
+#Emitter locaiton dictionary
+#Key        :   Value
+#Mac Address:   emitter location(x,y,z(height))
 
 
-emitter_location_dic = {"DD340207E30A": [7.85,-27.6,8.5], 
-                        "DD340208F9FC": [56.6,-45.68,8.5], 
-                        "DD340208FD1E": [75.44, -64.52, 8.5], 
-                        "DD340208FC89": [75.44, 22.65, 3.17], 
-                        "DD340208FD59": [57.19, -22.35, 8.5], 
-                        "DD340208FBB1": [57.19, 37.98, 9.25], 
-                        "DD340208FC48": [75.44, 22.65, 3.17]}
+
+
 
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
-def tra_localization():
+
+async def main():
+    beaconManager, file1 = None
+    beaconManager = BeaconManager()
+    await beaconManager.initialize_scanning()
+    while (True):
+        try:
+            if not None in beaconManager.get_closest():
+                print("Entering localization")
+                await tra_localization()
+                beaconManager.clear_closest()
+                print("********************************FULL*************************************************")
+            else:
+                print("not full\n")
+        except KeyboardInterrupt:
+            print("CLOSING")
+            await beaconManager.close()
+            file1.close()
+            return
+
     
-    beaconMana = BeaconManager()
-    cloest3_beacon_list= sorted(beaconMana.closest.items(), key=lambda x: x[2])[:3]
+async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
     
+    #cloest3_beacon_list = beaconManager.closest
+  
     # point a, b, c is the location of the emitter
-    point_a = emitter_location_dic[cloest3_beacon_list[0][1]]
-    point_b = emitter_location_dic[cloest3_beacon_list[1][1]]
-    point_c = emitter_location_dic[cloest3_beacon_list[2][1]]
+    point_a = emitter_location_dic[cloest3_beacon_list[0][0]]
+    point_b = emitter_location_dic[cloest3_beacon_list[1][0]]
+    point_c = emitter_location_dic[cloest3_beacon_list[2][0]]
+
     # Example known points (x, y, z)
     points = np.array([point_a, point_b, point_c])
 
     # distance is the distance from each emitter
-    # dis_a = 9.2143 * math.log(cloest3_beacon_list[0][2]) + 47.283
-    # dis_b = 9.2143 * math.log(cloest3_beacon_list[1][2]) + 47.283
-    # dis_c = 9.2143 * math.log(cloest3_beacon_list[2][2]) + 47.283
-    
-    dis_a = 51.044 * math.log(cloest3_beacon_list[0][2]) - 200.8
-    dis_b = 51.044 * math.log(cloest3_beacon_list[1][2]) - 200.8
-    dis_c = 51.044 * math.log(cloest3_beacon_list[2][2]) - 200.8
+    dis_a = 51.044 * math.log(int(cloest3_beacon_list[0][2])) - 200.8
+    dis_b = 51.044 * math.log(int(cloest3_beacon_list[1][2])) - 200.8
+    dis_c = 51.044 * math.log(int(cloest3_beacon_list[2][2])) - 200.8
   
 
     # Example distances from the unknown point to each of the known points
@@ -51,6 +69,4 @@ def tra_localization():
     # Extract the estimated location of the unknown point
     estimated_location = result.x
 
-    print("Estimated location:", estimated_location)
-
-    beaconMana.clear_closest()
+    return estimated_location

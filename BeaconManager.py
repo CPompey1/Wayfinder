@@ -1,9 +1,18 @@
 from bleak import BleakScanner, BleakClient
 import bleak
 import asyncio
+from globals import EMITTER_LOC_DICT
 class BeaconManager:
     MAX_RSI = 200
     MAX_UNIQUE = 3
+    # emitter_location_dic = {"DD:34:02:07:E3:0A": [7.85,-27.6,8.5],
+    #                     "DD:34:02:08:F9:FC": [56.6,-45.68,8.5],
+    #                     "DD:34:02:08:FD:1E": [75.44, -64.52, 8.5],
+    #                     "DD:34:02:08:FC:89": [75.44, 22.65, 3.17],
+    #                     "DD:34:02:08:FD:59": [57.19, -22.35, 8.5],
+    #                     "DD:34:02:08:FB:B1": [57.19, 37.98, 9.25],
+    #                     "DD:34:02:08:FC:48": [75.44, 22.65, 3.17]}
+
     def __init__(self):
         self.scanner = BleakScanner() 
         self.beacons = {}
@@ -23,7 +32,7 @@ class BeaconManager:
         await self.scanner.start()
         self.beaconUpdater = asyncio.create_task(self.update_beacons())
         # temp = asyncio.run(self.beaconUpdater)
-        self.loop = asyncio.get_event_loop()
+        
         await asyncio.sleep(5)
      
     #Returns beacon with smallest rssi value
@@ -45,13 +54,7 @@ class BeaconManager:
         return out
     def clear_unique_beacons(self):
         self.numUnique = 0
-<<<<<<< HEAD
-        for i in range(len(self.uniqueBeacons[0])):
-            self.uniqueBeacons[0][i] = None
-            self.uniqueBeacons[1][i] = None
-=======
         self.uniqueBeacons = {}
->>>>>>> 613788936c841f835555f6e6c6fc2a0049f2c710
 
     async def update_beacons(self):
         #advertisement (BLEDevice,AdvertisementData)
@@ -59,16 +62,23 @@ class BeaconManager:
         #         self.beacons[advertisement[0].address] = advertisement[0]
         # temp = await self.scanner.discover()
         async for beacon in self.scanner.advertisement_data():
-            self.beacons[beacon[0].address] = beacon[0]
-            if self.closest == None or beacon[1].rssi < abs(self.closest[1]):
-                self.closest = (beacon[0],abs(beacon[1].rssi)) 
+
+            #filter for only beacons in the emitter location dict
+            # if not beacon[0].address in EMITTER_LOC_DICT: continue
             
-            #If number of unqiue beacons is less than 0 and the adress doesnt already exist in unqie beacons
-            if self.numUnique < len(self.uniqueBeacons[0]) and not beacon[0].address in  self.uniqueBeacons[1]:
-                self.uniqueBeacons[0][self.numUnique] = beacon[0]
-                self.uniqueBeacons[1][self.numUnique] = beacon[0].address
-                self.uniqueBeacons[2][self.numUnique] = beacon[1].rssi
+
+            self.beacons[beacon[0].address] = beacon[0]
+
+            #If number of unqiue beacons is less than 3 and the adress doesnt already exist in unqie beacons
+            if self.numUnique < BeaconManager.MAX_UNIQUE and not beacon[0].address in  self.uniqueBeacons.keys():
+                self.uniqueBeacons[beacon[0].address] = (beacon[0],beacon[1].rssi)
                 self.numUnique+=1
+
+            #if closest is not full or there exists an rssi that is greater than the current ad, insert/swap 
+            for i in range(len(self.closest)):
+                beaconTuple = self.closest[i]
+                if beaconTuple == None or abs(beacon[1].rssi) < abs(beaconTuple[2]):
+                    self.closest[i] = (beacon[0].address,beacon[0],abs(int(beacon[1].rssi)))
 
 
     async def close(self):

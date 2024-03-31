@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
@@ -8,6 +9,8 @@ from PIL import ImageTk, Image, ImageOps
 import json
 import threading
 import asyncio
+from BFS import BFS
+from MPU.run_mpu import MpuClass
 from globals import *
 from BeaconManager import BeaconManager
 if not SIMULATION: from MPU.run_mpu import runMpu
@@ -29,10 +32,11 @@ class Wayfinder_UI(threading.Thread):
         #initliize beacon manager and threads
         self.manager = BeaconManager()
         self.manager.initialize_scanning()
-
+        self.bfs = BFS()
         self.navigation_thread = None
-
+        self.mpu = MpuClass()
         if not SIMULATION: 
+            
             self.mpu_thread = threading.Thread(target=runMpu, daemon=True)
             self.mpu_thread.start()
         else:
@@ -150,10 +154,148 @@ class Wayfinder_UI(threading.Thread):
         room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
         room_lb.bind('<Double-1>', self.service_confirmation)
         self.master.mainloop()
-       
+
+    def repaint(self,nav_page: Tk, start, goal, user_position, end):
+    
+        before_stairs = []
+        after_stairs = []
+        node_path = []
+        dest_id = "Third Floot Bathroom_a" ##stub data
+        user_location = [0,0,0]
+        user_grid_location = [0,0,0]
+        #SEPARATE START AND GOAL INTO BEFORE STAIRS AND AFTER STAIRS
+        #BEFORE_STAIRS = lines_before_stairs(start,goal)
+        #AFTER_STAIRS = lines_after_stairs(start,goal)
+        startingFloor = self.bfs.nodes[start[0]]["location"][2]
+        twoFloors = False
+        for i in range(len(start)):
+            #if floors are different
+            if self.bfs.nodes[start[i]]["location"][2] != self.bfs.nodes[goal[i]]["location"][2] and not twoFloors:
+                before_stairs = after_stairs
+                after_stairs = []
+                #after_stairs.append(nodeId)
+                twoFloors = True
+            else:
+                after_stairs.append([self.bfs.nodes[start[i]]["location"],self.bfs.nodes[goal[i]]["location"]])
+
+        if len(after_stairs) != 0:
+            after_stairs.append([after_stairs[len(after_stairs) - 1][1],end])
+        else:
+            after_stairs.append([self.bfs.nodes[goal[len(goal) - 1]]["location"],end])
+
+        if twoFloors:
+            before_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), before_stairs[0][0]])
+        else:
+            after_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), after_stairs[0][0]])
+
+        #NEED USER POSITION = NEAREST_NODE_ID
+        # nearest_node = self.bfs.find_nearest_node_feet()
+        # nearest_node_location = self.bfs.nodes[nearest_node]["location"]
+        # floor = nearest_node_location[2]
+
+        self.draw_path(nav_page, before_stairs, after_stairs)
+        while True:
+            dest_id = "Third Floot Bathroom_a" ##stub data
+            
+            #GET USER ORIENTATION FROM IMU (SHARED DATA)
+            orientation = self.mpu.get_values()
+            
+            #GET DIRECTION OF MOVEMENT FROM IMU (INCOMPLETE RIGHT NOW)
+
+            #GET USER LOCATION FROM NAVIGATION (SHARED DATA)
+            with sharedData.lock:
+                if(sharedData.estimated_location != None):
+                    user_location = sharedData.estimated_location
+
+
+            #CONVERT USER POSITION TO GRID SPACE
+            user_location_grid_tra = (self.bfs.feet_to_node_units(user_location[0], user_location[1])[0], self.bfs.feet_to_node_units(user_location[0], user_location[1])[1], user_location[2])
+            user_location_grid_bfs = user_grid_location
+
+            #POSSIBLE LATER
+                #DIRECTION OF MOVEMENT FROM IMU AND COMPARE IT TO DIRECTION OF MOVEMENT OF NAVIGATION
+                #IF THEY ARE WITHIN +- 45 DEGREES, ACCEPTABLE
+                #|---|---|---|
+                #| o | o | o |  IF MOVEMENT FROM IMU IS POSITIVE UP, THEN THREE GRID COORDINATES ARE VALID
+                #|---|---|---|
+                #| x | H | x |
+                #|---|---|---|
+                #| x | x | x |
+                #|---|---|---|
+            
+                #|---|---|---|
+                #| o | o | X |  IF MOVEMENT FROM IMU IS DIAGONAL UP AND LEFT, THEN THREE GRID COORDINATES ARE VALID
+                #|---|---|---|
+                #| o | H | x |
+                #|---|---|---|
+                #| x | x | x |
+                #|---|---|---|
+
+            
+
+            #IF USERPOSITION != CURRENT USER POSITION
+            if user_location_grid_bfs != user_location_grid_tra:
+                #USERPOSITION = CURRENT USER POSITION
+                b = FALSE
+                user_grid_location = user_location_grid_tra
+                #IF BEFORE STAIRS IS NOT EMPTY
+                if len(before_stairs) > 0:
+                    #PATH OF NODES = BEFORE STAIRS
+                    node_path = before_stairs
+                    b = TRUE
+                else:
+                    #PATH OF NODES = AFTER STAIRS       #AFTER STAIRS SHOULD ONLY START AFTER REACHING THE NEXT FLOOR
+                    node_path = after_stairs
+                #LOOP THROUGH PATH OF NODES AND CHECK AGAINST POSITIONS
+                
+                found_node_in_path = False
+                for i in range(len(node_path)):
+                    #IF CURRENT USER POSITION EXISTS IN PATH
+                    if user_grid_location == node_path[i]:
+                        #REMOVE THE NODE FROM THE PATH (START AND GOAL VARIABLES LEN - 1)
+                        for j in range(0,i+1,1):
+                            if b:
+                                before_stairs.pop()
+                            else:
+                                after_stairs.pop()
+                        found_node_in_path = True
+                
+                #ELSE IF CURRENT USER POSITION EXISTS IN LIST OF ALL NODES IN THE CURRENT FLOOR
+                if not found_node_in_path:
+                    for i in self.bfs.nodes:
+                        if user_grid_location == self.bfs.nodes[i]["location"]:
+                            if b:
+                                before_stairs.insert(0, [self.bfs.nodes[i]["location"],before_stairs[0][0]])
+                            else:
+                                after_stairs.insert(0, [self.bfs.nodes[i]["location"],after_stairs[0][0]])
+
+                    #ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
+                    
+                #THEN, REDRAW
+            
+
+            #POSSIBLE LATER
+                #IF THE USER IMAGE HAS A DIRECTION IT CAN FACE
+                    #REDRAW WHEN IMU ORIENTATION CHANGES BY INCREMENTS OF 15 DEGREES
+                    #THIS MEANS ONLY REDRAW WHEN IMU ORIENTATION CLOSEST ANGLE IS A DIFFERENT MULTIPLE OF 15 DEGREES
+
+
+            #hey
+
+            nav_page.update()
+            time.sleep(2)
+  
     # THIRD PAGE FOR ACTUAL NAVIGATION
     # HERE THE CODE TO COMMUNICATE BETWEEN THE SELECTED SERVICE AND THE BLUETOOTH CODE
     def start_navigation(self, goal: StringVar):
+        #stubd data. Must be updated
+        user_location_feet = (-6, 78, 0)
+        user_node = self.bfs.feet_to_node_units(user_location_feet[0], user_location_feet[1])
+
+
+        dest_id = "Basement Bathroom"
+        preference = "stairs"
+
         self.master.destroy()
         nav_page = Tk()
         self.navigation_thread = threading.Thread(target=runNavigation, args=(self.manager,))
@@ -179,16 +321,31 @@ class Wayfinder_UI(threading.Thread):
         start = [130,0]
 
         # Destination comes from JSON file and user selection
-        #eleveator pixel origin (130,140)
-        goal = [130, 400]
+        #eleveator pixel origin (130,400)
+        goal = [130, 403]
         
-        start1 = [150,0]
+        end_location = self.bfs.find_destination_by_id(dest_id, self.bfs.endpoints)
+        nearest_node_id = self.bfs.find_nearest_node_feet(user_location_feet, self.bfs.nodes)
+        nodePath = self.bfs.find_path(user_location_feet, dest_id, self.bfs.nodes, self.bfs.graph, self.bfs.endpoints, preference)
+        locations = {}
+        # for node in self.bfs.nodes.keys():
+        #     if node in nodePath:
+        #         locations[node] = self.bfs.nodes[node]["location"]
+        
+        
+        
+        start = []
+        goal = []
+        for i in range(len(nodePath)):
+            if i < len(nodePath) - 1:
+                start.append(nodePath[i])
+                goal.append(nodePath[i+1])
+            locations[nodePath[i]] = self.bfs.nodes[nodePath[i]]["location"]
 
-        # Destination comes from JSON file and user selection
-        #eleveator pixel origin (130,140)
-        goal1 = [150, 400]
 
-        draw_path(nav_page, start, goal)
+        
+        self.repaint(nav_page, start, goal, user_node, end_location)
+        #draw_path(nav_page, start, goal)
         nav_page.mainloop()
 
     # DEVELOPER MODE TO CHECK ON EMITTERS FUNCTIONALITIES
@@ -238,6 +395,59 @@ class Wayfinder_UI(threading.Thread):
                 self.start_navigation(sel_service)
             else:
                 self.selected = False
+    
+    # Function that draws lines for directions to follow
+    def draw_path(self,page: Tk, before_stairs, after_stairs):
+        #screen = Canvas(page, width= 600, height=550, background="black")
+        # screen.pack(anchor='nw', fill='both', expand=1)
+
+        # NEED TO CLEAR THE SCREEN HERE FIRST
+
+        w = page.winfo_screenwidth()
+        h = page.winfo_screenheight()
+        screen = Canvas(master=page, width=w, height=h)
+        screen.pack(anchor="center")
+        if(len(before_stairs) != 0):
+            img_floor = Image.open("flr" + str(before_stairs[0][0][2]) + "_larger.jpg")
+        else:  
+            img_floor = Image.open("flr" + str(after_stairs[0][0][2]) + "_larger.jpg")
+        img_floor = ImageOps.exif_transpose(img_floor)
+        width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
+        img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
+        screen.configure(background="white", width=img.width, height=height)
+        img_tk = ImageTk.PhotoImage(img)
+        screen.image = img_tk
+        #img_floor = img_floor.resize((500,500), Image.ANTIALIAS)
+        # Play with position
+        screen.create_image(0,0, image= img_tk, anchor= "nw")
+        #screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
+        page.update()
+        
+        if len(before_stairs) != 0:
+            for i in range(0,len(before_stairs),1):
+                screen.create_line(grid2Pixel(before_stairs[i][0][0:2],before_stairs[i][0][2])[0],
+                               grid2Pixel(before_stairs[i][0][0:2],before_stairs[i][0][2])[1],
+                               grid2Pixel(before_stairs[i][1][0:2],before_stairs[i][1][2])[0],
+                               grid2Pixel(before_stairs[i][1][0:2],before_stairs[i][1][2])[1],
+                               fill="blue", width = 3)
+        else:
+            for i in range(0,len(after_stairs),1):
+                screen.create_line(grid2Pixel(after_stairs[i][0][0:2],after_stairs[i][0][2])[0],
+                               grid2Pixel(after_stairs[i][0][0:2],after_stairs[i][0][2])[1],
+                               grid2Pixel(after_stairs[i][1][0:2],after_stairs[i][1][2])[0],
+                               grid2Pixel(after_stairs[i][1][0:2],after_stairs[i][1][2])[1],
+                               fill="blue", width = 3)
+
+        # Destination comes from JSON file and user selection
+        #eleveator pixel origin (130,403)
+        #goal1 = [150, 400]
+
+        #screen.create_line(start1[0],start1[1],goal1[0], goal1[1], fill="red", width = 3)
+        #line_start = grid2Pixel([0,0],1)
+        #line_stop = grid2Pixel([2,2],1)
+        #screen.create_line(line_start[0],line_start[1],line_stop[0],line_stop[1], fill="green", width = 3)
+    
+
     def close(self):
         sharedData.closing = True
         self.mpu_thread.join()
@@ -246,41 +456,22 @@ class Wayfinder_UI(threading.Thread):
         self.manager.close()
         
         
-# Function that draws lines for directions to follow
-def draw_path(page: Tk, start, goal):
-    #screen = Canvas(page, width= 600, height=550, background="black")
-    # screen.pack(anchor='nw', fill='both', expand=1)
-    w = page.winfo_screenwidth()
-    h = page.winfo_screenheight()
-    screen = Canvas(master=page, width=w, height=h)
-    screen.pack(anchor="center")
-    img_floor = Image.open("flr4.jpg")
-    img_floor = ImageOps.exif_transpose(img_floor)
-    width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
-    img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
-    screen.configure(background="white", width=img.width, height=height)
-    img_tk = ImageTk.PhotoImage(img)
-    screen.image = img_tk
-    #img_floor = img_floor.resize((500,500), Image.ANTIALIAS)
-    # Play with position
-    screen.create_image(0,0, image= img_tk, anchor= "nw")
 
-    #call bfs
-    screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
-    page.update()
+
+def grid2Pixel(inp,floor):
+    if(floor == 0):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_B_X) + ELEVATOR_PIXEL_X_FLOOR_B + (PIXELS_PER_GRID_FLOOR_B_X / 2), ELEVATOR_PIXEL_Y_FLOOR_B - (inp[1] * PIXELS_PER_GRID_FLOOR_B_Y) - (PIXELS_PER_GRID_FLOOR_B_Y / 2)]
+    elif(floor == 1):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_1_X) + ELEVATOR_PIXEL_X_FLOOR_1 + (PIXELS_PER_GRID_FLOOR_1_X / 2), ELEVATOR_PIXEL_Y_FLOOR_1 - (inp[1] * PIXELS_PER_GRID_FLOOR_1_Y) - (PIXELS_PER_GRID_FLOOR_1_Y / 2)]
+    elif(floor == 2):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_2_X) + ELEVATOR_PIXEL_X_FLOOR_2 + (PIXELS_PER_GRID_FLOOR_2_X / 2), ELEVATOR_PIXEL_Y_FLOOR_2 - (inp[1] * PIXELS_PER_GRID_FLOOR_2_Y) - (PIXELS_PER_GRID_FLOOR_2_Y / 2)]
+    elif(floor == 3):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_3_X) + ELEVATOR_PIXEL_X_FLOOR_3 + (PIXELS_PER_GRID_FLOOR_3_X / 2), ELEVATOR_PIXEL_Y_FLOOR_3 - (inp[1] * PIXELS_PER_GRID_FLOOR_3_Y) - (PIXELS_PER_GRID_FLOOR_3_Y / 2)]
+    elif(floor == 4):
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_4_X) + ELEVATOR_PIXEL_X_FLOOR_4 + (PIXELS_PER_GRID_FLOOR_4_X / 2), ELEVATOR_PIXEL_Y_FLOOR_4 - (inp[1] * PIXELS_PER_GRID_FLOOR_4_Y) - (PIXELS_PER_GRID_FLOOR_4_Y / 2)]
+    else:
+        return [(inp[0] * PIXELS_PER_GRID_FLOOR_5_X) + ELEVATOR_PIXEL_X_FLOOR_5 + (PIXELS_PER_GRID_FLOOR_5_X / 2), ELEVATOR_PIXEL_Y_FLOOR_5 - (inp[1] * PIXELS_PER_GRID_FLOOR_5_Y) - (PIXELS_PER_GRID_FLOOR_5_Y / 2)]
     
-    start1 = [150,0]
-
-    # Destination comes from JSON file and user selection
-    #eleveator pixel origin (130,140)
-    goal1 = [150, 400]
-    screen.create_line(start1[0],start1[1],goal1[0], goal1[1], fill="red", width = 3)
-
-    while True:
-        page.update()
-        sleep(2)
-        
-    #hey
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
@@ -302,7 +493,8 @@ def runNavigation(manager):
             manager.clear_closest()
             print("********************************FULL*************************************************")
         else:
-            print("not full\n")
+            # print("not full\n")
+            pass
 
 async def main():
     # Read json file for services and rooms 

@@ -1,0 +1,77 @@
+{
+    "service_group": [
+        {
+            "Bathroom" : [
+                {
+                    "0" : ["Basement Bathroom"],
+                    "1" : ["First Floor Bathroom"],
+                    "2" : ["Second Floor Bathroom"],
+                    "3" : ["Third Floor Bathroom"],
+                    "4" : ["Fourth Floor Bathroom"],
+                    "5" : ["Fifth Floor Bathroom"]
+                }
+            ],
+            "Classroom" : [
+                {
+                    "0" : null,
+                    "1" : ["Meeting Room 110", "Classroom 109"],
+                    "2" : ["Meeting Room 223"],
+                    "3" : null,
+                    "4" : ["Study Room 420"],
+                    "5" : ["Study Room 520", "Polish Room"]
+                }
+            ],
+            "Office" : [
+                {
+                    "0" : ["Marketing Comm. and Digital Engagement", "Administrative Operations"],
+                    "1" : ["Science & Engineering Info Center", "Amanda McCormick, Science Librarian", "Todd Nibble, Facilities & Operation Supervisor", "Jill M. Hackenberg, Associate Librarian", "Sam Kim, GIS and Geospatial Librarian", "Erin Rowley, Engineering Librarian"],
+                    "2" : ["Jake Carlson, Ass. University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Donna Berryman, Ass. University for Research", "Karlen Chase, Head of Inst. Repository Services"],
+                    "3" : null,
+                    "4" : null,
+                    "5" : null
+                }
+                
+            ],
+            "Stairs" : [
+                {
+                    "0" : ["Basement Stairs"],
+                    "1" : ["First Floor Stairs"],
+                    "2" : ["Second Floor Stairs"],
+                    "3" : ["Third Floor Stairs"],
+                    "4" : ["Fourth Floor Stairs"],
+                    "5" : ["Fifth Floor Stairs"]
+                }
+            ],
+            "Elevator" : [
+                {
+                    "0" : ["Basement Elevator"],
+                    "1" : ["First Floor Elevator"],
+                    "2" : ["Second Floor Elevator"],
+                    "3" : ["Third Floor Elevator"],
+                    "4" : ["Fourth Floor Elevator"],
+                    "5" : ["Fifth Floor Elevator"]
+                }
+            ],
+            "Collection" : [
+                {
+                    "0" : ["Map Collection"],
+                    "1" : ["Government Document", "SEIC Reference Collection"],
+                    "2" : ["Current Periodicals", "Graphic Novels", "Indigenous Students Collection", "International Leisure Reading", "East Asia Ref"],
+                    "3" : null,
+                    "4" : null,
+                    "5" : null
+                }
+            ],
+            "Other" : [
+                {
+                    "0" : null,
+                    "1" : ["Outside Entrance/Exit"],
+                    "2" : ["Main Inside Entrance", "Level UP", "Scanners", "Library Service Desk"],
+                    "3" : null,
+                    "4" : ["Study Room 420"],
+                    "5" : ["Study Room 520", "Polish Room"]
+                }
+            ]
+        }
+    ]
+}
