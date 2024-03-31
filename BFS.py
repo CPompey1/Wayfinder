@@ -31,8 +31,8 @@ def calculate_distance(point1, point2):
 
 
 def feet_to_node_units(x, y):
-    x_converted = floor(x / 6) if x < 0 else round(x / 6)
-    y_converted = floor(y / 6) if y < 0 else round(y / 6)
+    x_converted = floor(x / 6) if x > 0 else round(x / 6)
+    y_converted = floor(y / 6) if y > 0 else round(y / 6)
     return x_converted, y_converted
 
 
