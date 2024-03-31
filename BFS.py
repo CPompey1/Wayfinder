@@ -237,7 +237,7 @@ def generate_directions(path, nodes, start_location, end_location):
 
     if start_location and start_location != nodes[start_node_id]['location']:
         start_direction = get_direction(start_location, nodes[start_node_id]['location'])
-        start_distance = calculate_distance(start_location[:2], nodes[start_node_id]['location'][:2])
+        start_distance = calculate_distance(feet_to_node_units(start_location[0], start_location[1]), nodes[start_node_id]['location'][:2])
         directions.append(f"Start at your location and go {start_direction} for {round(start_distance)} feet")
 
     for i in range(len(path) - 1):
