@@ -203,12 +203,12 @@ class Wayfinder_UI(threading.Thread):
         
         start = []
         goal = []
-        start.append(self.bfs.nodes[nearest_node_id]["location"][0:3])
-        goal.append(self.bfs.nodes[nodePath[0]]["location"][0:3])
+        start.append(self.bfs.nodes[nearest_node_id])
+        goal.append(self.bfs.nodes[nodePath[0]])
         for i in range(len(nodePath)):
             if i < len(nodePath) - 1:
-                start.append(self.bfs.nodes[nodePath[i]]["location"][0:3])
-                goal.append(self.bfs.nodes[nodePath[i+1]]["location"][0:3])
+                start.append(self.bfs.nodes[nodePath[i]])
+                goal.append(self.bfs.nodes[nodePath[i+1]])
             locations[nodePath[i]] = self.bfs.nodes[nodePath[i]]["location"]
 
         
@@ -322,11 +322,22 @@ def draw_path(page: Tk, start, goal):
 
 def repaint(self,nav_page: Tk, start, goal):
     
+    before_stairs = []
+    after_stairs = []
     #SEPARATE START AND GOAL INTO BEFORE STAIRS AND AFTER STAIRS
     #BEFORE_STAIRS = lines_before_stairs(start,goal)
-    before_stairs = []
     #AFTER_STAIRS = lines_after_stairs(start,goal)
-    after_stairs = []
+    startingFloor = self.bfs.nodes[start[0]]["location"][2]
+    twoFloors = False
+    for node_locations in start:
+        #if floors are different
+        if startingFloor != self.bfs.nodes[node_locations]["location"][2] and not twoFloors:
+            before_stairs = after_stairs
+            after_stairs = [].append(node_locations)
+            twoFloors = True
+        else:
+            after_stairs = after_stairs.append(node_locations)
+
     #NEED USER POSITION = NEAREST_NODE_ID
     # nearest_node = self.bfs.find_nearest_node_feet()
     # nearest_node_location = self.bfs.nodes[nearest_node]["location"]

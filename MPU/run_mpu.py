@@ -31,7 +31,7 @@ class MpuClass:
             return(1,1,1)
         
         with sharedData.lock:
-            sharedData.values = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
+            sharedData.imu_orientation = (self.sensorfusion.roll,self.sensorfusion.pitch,self.sensorfusion.yaw)
         
         return sharedData.values
 

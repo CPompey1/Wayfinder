@@ -19,10 +19,10 @@ PIXELS_PER_GRID_FLR4 = 17
 
 IMU_ADDR = 0x68
 IMU_BUS = 1
+
 FLOOR_4 = 4
 
 
-FLOOR_4 = 4
 class SharedData:
     def __init__(self) -> None:
         self.lock = threading.Lock()
