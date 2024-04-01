@@ -183,6 +183,9 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
     target_node = find_nearest_node_destination(target_location, input_nodes)
     target_floor = input_nodes[target_node]['location'][2]
 
+    if target_floor == start_floor == 2 and preference == "stairs":
+        return bfs_same_floor(input_graph, start_node, target_node, input_nodes, target_floor)
+
     if target_floor == 1 and start_floor != 1 and preference == "elevator":
         nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
         path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
@@ -197,8 +200,18 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
         path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
         target_floor_elevator = find_nearest_elevator_for_floor(input_nodes, target_floor)
         path_to_destination = bfs_same_floor(input_graph, target_floor_elevator, target_node, input_nodes, target_floor)
-        if start_floor == 1:
+        if target_floor == 2 and start_floor ==2:
+            between_two_elevators = bfs_same_floor(input_graph, nearest_elevator_on_current_floor, target_floor_elevator, input_nodes, 2)
+            del between_two_elevators[0]
+            del between_two_elevators[-1]
+            complete_path = path_to_elevator + between_two_elevators + path_to_destination
+        elif start_floor == 1 and target_floor == 2:
+            fixed_path = [106, 105, 104, 102, 101]
+            complete_path = path_to_elevator + fixed_path + path_to_destination
+        elif start_floor == 1:
             fixed_path = [106, 105, 104, 102, 101, 17, target_floor_elevator]
+            print(fixed_path)
+            print(path_to_destination)
             complete_path = path_to_elevator + fixed_path + path_to_destination
         else:
             complete_path = path_to_elevator + path_to_destination
@@ -211,7 +224,7 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
         return bfs(input_graph, start_node, target_node, input_nodes, preference)
 
     if target_floor == start_floor:
-        return bfs_same_floor(input_graph, start_node, target_node, input_nodes, preference)
+        return bfs_same_floor(input_graph, start_node, target_node, input_nodes, target_floor)
 
     if start_floor == 1 and target_floor != 1 and preference == "stairs":
         return bfs(input_graph, start_node, target_node, input_nodes, preference)
