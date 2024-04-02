@@ -5,6 +5,8 @@ import math
 import time
 import asyncio
 
+from globals import EMITTER_LOC_DICT
+
 #Emitter locaiton dictionary
 #Key        :   Value
 #Mac Address:   emitter location(x,y,z(height))
@@ -16,42 +18,69 @@ import asyncio
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
 
 async def main():
-    beaconManager, file1 = None
+    beaconManager = None
+    file1 = None
+    closestBeacons =  None
+
+    #overrite with empty bytes
+    with open('locationData','w') as file:
+        file.write(f'')
+
     beaconManager = BeaconManager()
     await beaconManager.initialize_scanning()
+    i = 0
+
     while (True):
         try:
-            if not None in beaconManager.get_closest():
+            i+=1
+            closestBeacons = beaconManager.get_closest()
+            if beaconManager.closest_full():
                 print("Entering localization")
-                await tra_localization()
-                beaconManager.clear_closest()
+                location = await tra_localization(closestBeacons,EMITTER_LOC_DICT)
+                if len(location) ==0: continue
+                with open('locationData','a') as file:
+                    file.write(f'Estimated Location: {location}\n')
                 print("********************************FULL*************************************************")
+                # beaconManager.clear_closest()
             else:
-                print("not full\n")
+                pass
+                #print("not full\n")
+            
+            
+            with open('locationData','a') as file:
+                    file.write(f'Iteration: {i}\n')
+
         except KeyboardInterrupt:
             print("CLOSING")
             await beaconManager.close()
             file1.close()
             return
+        
+        print(f"Beacons: {beaconManager.get_beacons()}")
+        print(f"Closest Beacons: {beaconManager.get_closest()}")
+
 
     
 async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
     
     #cloest3_beacon_list = beaconManager.closest
   
-    # point a, b, c is the location of the emitter
-    point_a = emitter_location_dic[cloest3_beacon_list[0][0]]
-    point_b = emitter_location_dic[cloest3_beacon_list[1][0]]
-    point_c = emitter_location_dic[cloest3_beacon_list[2][0]]
+    try:
+        # point a, b, c is the location of the emitter
+        point_a = emitter_location_dic[cloest3_beacon_list[0][0]]
+        point_b = emitter_location_dic[cloest3_beacon_list[1][0]]
+        point_c = emitter_location_dic[cloest3_beacon_list[2][0]]
 
-    # Example known points (x, y, z)
-    points = np.array([point_a, point_b, point_c])
+        # Example known points (x, y, z)
+        points = np.array([point_a, point_b, point_c])
 
-    # distance is the distance from each emitter
-    dis_a = 51.044 * math.log(int(cloest3_beacon_list[0][2])) - 200.8
-    dis_b = 51.044 * math.log(int(cloest3_beacon_list[1][2])) - 200.8
-    dis_c = 51.044 * math.log(int(cloest3_beacon_list[2][2])) - 200.8
-  
+        # distance is the distance from each emitter
+        dis_a = 51.044 * math.log(int(cloest3_beacon_list[0][2])) - 200.8
+        dis_b = 51.044 * math.log(int(cloest3_beacon_list[1][2])) - 200.8
+        dis_c = 51.044 * math.log(int(cloest3_beacon_list[2][2])) - 200.8
+    except Exception as e:
+        # print(e)
+        return []
 
     # Example distances from the unknown point to each of the known points
     distances = np.array([dis_a, dis_b, dis_c])
@@ -70,3 +99,5 @@ async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[fl
     estimated_location = result.x
 
     return estimated_location
+
+asyncio.run(main())
