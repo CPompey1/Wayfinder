@@ -36,10 +36,50 @@ def feet_to_node_units(x, y):
     return x_converted, y_converted
 
 
-def find_destination_by_id(dest_id, destinations):
-    for destination in destinations:
-        if destination["dest_id"] == dest_id:
-            return destination["location_x"], destination["location_y"], destination["location_z"]
+def find_destination_by_id(user_location_feet, dest_id, destinations):
+    current_floor = user_location_feet[2]
+    if dest_id.find("Bathroom") == -1:
+        for destination in destinations:
+            if destination["dest_id"] == dest_id:
+                return destination["location_x"], destination["location_y"], destination["location_z"]
+    else:
+        if dest_id.find("Second") != -1 or dest_id.find("First") != -1 or dest_id.find("Basement") != -1:
+            for destination in destinations:
+                if destination["dest_id"] == dest_id:
+                    return destination["location_x"], destination["location_y"], destination["location_z"]
+        # Third Floor Bathroom
+        elif dest_id.find("Third") != -1:
+            if current_floor == 3:
+                bathroom_a = calculate_distance(user_location_feet[:2], [6, 23])
+                bathroom_b = calculate_distance(user_location_feet[:2], [13, -5])
+                if bathroom_a < bathroom_b:
+                    return 6, 23, 3
+                else:
+                    return 13, -5, 3
+            else:
+                return 13, -5, 3
+        # Forth Floor Bathroom
+        elif dest_id.find("Fourth") != -1:
+            if current_floor == 4:
+                bathroom_a = calculate_distance(user_location_feet[:2], [6, 28])
+                bathroom_b = calculate_distance(user_location_feet[:2], [15, -3])
+                if bathroom_a < bathroom_b:
+                    return 6, 28, 4
+                else:
+                    return 15, -3, 4
+            else:
+                return 15, -3, 4
+        # Fifth Floor Bathroom
+        elif dest_id.find("Fifth") != -1:
+            if current_floor == 5:
+                bathroom_a = calculate_distance(user_location_feet[:2], [6, 28])
+                bathroom_b = calculate_distance(user_location_feet[:2], [15, -3])
+                if bathroom_a < bathroom_b:
+                    return 6, 28, 5
+                else:
+                    return 15, -3, 5
+            else:
+                return 15, -3, 5
     return None
 
 
@@ -111,20 +151,19 @@ def bfs(input_graph, start_node, target_node, input_nodes, preference):
 
         if current_node not in visited:
             visited.add(current_node)
+
             for neighbor in input_graph[current_node]:
                 if neighbor not in visited:
                     neighbor_data = input_nodes[neighbor]
                     neighbor_type = neighbor_data.get("node_type")
 
-                    if not preference or neighbor_type == preference or neighbor_type is None:
-                        if (neighbor_type == "elevator" or current_node_data.get("node_type") == "elevator") and \
-                                current_node_data['location'][2] != neighbor_data['location'][2]:
+                    if preference == "stairs" and neighbor_type == "elevator":
+                        if current_node_data['location'][2] == neighbor_data['location'][2]:
                             queue.append((neighbor, path + [neighbor]))
-                        elif neighbor_type != "elevator" or current_node_data.get("node_type") != "elevator":
-                            queue.append((neighbor, path + [neighbor]))
+                    elif not preference or neighbor_type == preference or neighbor_type is None:
+                        queue.append((neighbor, path + [neighbor]))
 
     return None
-
 
 
 def find_nearest_elevator(start_node, input_nodes, input_graph, current_floor):
@@ -148,6 +187,14 @@ def find_nearest_elevator(start_node, input_nodes, input_graph, current_floor):
 
     return None
 
+def remove_duplicate_sequence(path, target):
+    indices = [index for index, value in enumerate(path) if value == target]
+
+    if len(indices) > 1:
+        first_index, second_index = indices[0], indices[1]
+        return path[:first_index + 1] + path[second_index:]
+    else:
+        return path
 
 def find_nearest_elevator_for_floor(input_nodes, floor):
     for node_id, node_info in input_nodes.items():
@@ -179,12 +226,20 @@ def bfs_same_floor(input_graph, start_node, target_node, input_nodes, floor):
 def find_path(user_location, input_dest_id, input_nodes, input_graph, input_destinations, preference):
     start_node = find_nearest_node_feet(user_location, input_nodes)
     start_floor = input_nodes[start_node]['location'][2]
-    target_location = find_destination_by_id(input_dest_id, input_destinations)
+    target_location = find_destination_by_id(user_location, input_dest_id, input_destinations)
     target_node = find_nearest_node_destination(target_location, input_nodes)
     target_floor = input_nodes[target_node]['location'][2]
 
     if target_floor == start_floor == 2 and preference == "stairs":
         return bfs_same_floor(input_graph, start_node, target_node, input_nodes, target_floor)
+
+    if target_floor != 1 and start_floor == 2 and preference == "elevator":
+        nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
+        path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
+        fixed_path = [105, 104, 102, 101]
+        path_to_destination = bfs(input_graph, 17, target_node, input_nodes, preference)
+        complete_path = path_to_elevator + fixed_path + path_to_destination
+        return complete_path
 
     if target_floor == 1 and start_floor != 1 and preference == "elevator":
         nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
@@ -193,14 +248,15 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
 
         path_to_destination = bfs(input_graph, 97, target_node, input_nodes, preference)
         complete_path = path_to_elevator + fixed_path + path_to_destination
-        return complete_path
+        removed = remove_duplicate_sequence(complete_path, 106)
+        return removed
 
     if target_floor != 1 and preference == "elevator":
         nearest_elevator_on_current_floor = find_nearest_elevator(start_node, input_nodes, input_graph, start_floor)
         path_to_elevator = bfs(input_graph, start_node, nearest_elevator_on_current_floor, input_nodes, preference)
         target_floor_elevator = find_nearest_elevator_for_floor(input_nodes, target_floor)
         path_to_destination = bfs_same_floor(input_graph, target_floor_elevator, target_node, input_nodes, target_floor)
-        if target_floor == 2 and start_floor ==2:
+        if target_floor == 2 and start_floor == 2:
             between_two_elevators = bfs_same_floor(input_graph, nearest_elevator_on_current_floor, target_floor_elevator, input_nodes, 2)
             del between_two_elevators[0]
             del between_two_elevators[-1]
@@ -210,21 +266,19 @@ def find_path(user_location, input_dest_id, input_nodes, input_graph, input_dest
             complete_path = path_to_elevator + fixed_path + path_to_destination
         elif start_floor == 1:
             fixed_path = [106, 105, 104, 102, 101, 17, target_floor_elevator]
-            print(fixed_path)
-            print(path_to_destination)
             complete_path = path_to_elevator + fixed_path + path_to_destination
         else:
             complete_path = path_to_elevator + path_to_destination
         return complete_path
+
+    if target_floor == start_floor:
+        return bfs_same_floor(input_graph, start_node, target_node, input_nodes, target_floor)
 
     if target_floor == 1 and start_floor != 1 and preference == "stairs":
         return bfs(input_graph, start_node, target_node, input_nodes, preference)
 
     if target_floor != 1 and start_floor != 1 and preference == "stairs":
         return bfs(input_graph, start_node, target_node, input_nodes, preference)
-
-    if target_floor == start_floor:
-        return bfs_same_floor(input_graph, start_node, target_node, input_nodes, target_floor)
 
     if start_floor == 1 and target_floor != 1 and preference == "stairs":
         return bfs(input_graph, start_node, target_node, input_nodes, preference)
@@ -287,11 +341,11 @@ def generate_directions(path, nodes, start_location, end_location):
 
 # below is how you would call different functions
 # things I need before BFS can run
-user_location_feet = (45, 65, 1)
-dest_id = "Third Floor Bathroom_a"
+user_location_feet = (75, 180, 2)
+dest_id = "Erin Rowley, Engineering Librarian"
 preference = "stairs"
 
-end_location = find_destination_by_id(dest_id, endpoints)
+end_location = find_destination_by_id(user_location_feet, dest_id, endpoints)
 nearest_node_id = find_nearest_node_feet(user_location_feet, nodes)
 print(f"Your Nearest Node is:{nearest_node_id}")
 shortest_path = find_path(user_location_feet, dest_id, nodes, graph, endpoints, preference)
