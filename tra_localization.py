@@ -58,6 +58,7 @@ async def main():
         
         print(f"Beacons: {beaconManager.get_beacons()}")
         print(f"Closest Beacons: {beaconManager.get_closest()}")
+        
 
 
     

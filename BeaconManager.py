@@ -52,7 +52,7 @@ class BeaconManager:
     
     def closest_full(self):
         with self.lock:
-            if not None in self.beacons:
+            if not None in self.closest:
                 return True
             else: return False
     def get_beacons(self):
@@ -98,16 +98,33 @@ class BeaconManager:
 
 
             done = False
-
+            beacon_exists = True
+        
             with self.lock:
             # if not (beacon_addr in self.closest_addr and self.num_closest > 2): 
                 for i in range(len(self.closest)):
                     beaconTuple = self.closest[i]
                     if done: break
-                    if beaconTuple == None or abs(beacon_rssi) < abs(beaconTuple[2]):
-                        self.newBatch = (self.newBatch + 1)%3
-                        self.closest[i] = (beacon_addr,beaconTuple,abs(int(beacon_rssi)))
+                    if not beaconTuple == None and beacon_addr in beaconTuple:
+                        self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
                         done = True
+                
+                for i in range(len(self.closest)):
+                    beaconTuple = self.closest[i]
+                    if done: break
+
+                    if  beaconTuple == None:
+                        self.newBatch = (self.newBatch + 1)%3
+                        self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
+                        done = True
+
+
+
+                    #Replace Nones
+                
+                    
+
+                        
 
        
 

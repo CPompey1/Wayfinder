@@ -5,7 +5,7 @@ import asyncio
 #tests closest beacon function by printing closest beacon, then subsequenyly printing all the beacon rssi's
 async def main():
     manager = BeaconManager()
-    await manager.initialize()
+    await manager.initialize_scanning()
     beacons = manager.get_beacons()
     print(beacons)
     closest = manager.get_closest()
