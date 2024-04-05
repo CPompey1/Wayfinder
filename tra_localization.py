@@ -1,3 +1,4 @@
+import threading
 from scipy.optimize import minimize
 import numpy as np
 from BeaconManager import BeaconManager
@@ -13,24 +14,30 @@ from globals import EMITTER_LOC_DICT
 
 
 
-
-
+beaconManager = None
+file1 = None
+closestBeacons =  None
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
 
 async def main():
-    beaconManager = None
-    file1 = None
-    closestBeacons =  None
+    global beaconManager
+    
 
     #overrite with empty bytes
     with open('locationData','w') as file:
         file.write(f'')
 
     beaconManager = BeaconManager()
-    await beaconManager.initialize_scanning()
-    i = 0
+    await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
+    
 
+        
+async def localization():
+    global beaconManager
+    i = 0
+    await asyncio.sleep(5)
     while (True):
+        await asyncio.sleep(.1)
         try:
             i+=1
             closestBeacons = beaconManager.get_closest()
@@ -58,8 +65,6 @@ async def main():
         
         print(f"Beacons: {beaconManager.get_beacons()}")
         print(f"Closest Beacons: {beaconManager.get_closest()}")
-        
-
 
     
 async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:

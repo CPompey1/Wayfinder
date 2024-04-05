@@ -28,8 +28,8 @@ class BeaconManager:
 
         await self.scanner.start()
         self.beaconUpdater = asyncio.create_task(self.update_beacons())
-
-        await asyncio.sleep(5)
+        
+        await asyncio.sleep(1)
        
         
      
@@ -75,6 +75,7 @@ class BeaconManager:
         with open('locationData','a') as file:
              file.write(f'STARTING UPDATE BEACOSN\n')
         async for beacon,ad_packet in self.scanner.advertisement_data() :
+            await asyncio.sleep(.1)
             if self.closing: return
 
             # print(f"Beacon Device {beacon}\n advertisement: {ad_packet}")
@@ -115,6 +116,14 @@ class BeaconManager:
 
                     if  beaconTuple == None:
                         self.newBatch = (self.newBatch + 1)%3
+                        self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
+                        done = True
+                
+                for i in range(len(self.closest)):
+                    beaconTuple = self.closest[i]
+                    if done: break
+
+                    if abs(int(beacon_rssi)) < beaconTuple[2]:
                         self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
                         done = True
 
