@@ -64,10 +64,19 @@ class SharedData:
         self.estimated_location = None
         self.closing = False
         self.beacon_manager_lock = threading.Lock()
-
+        self.navigation_started = True
+    def get_orientation(self):
+        with self.lock:
+            out = self.estimated_location
+        return out
+    def get_estimated_location(self):
+        with self.lock:
+            out = self.orientation
+        return out
+    def start_navigation(self):
+        with self.lock:
+            self.navigation_started = True
+        return
 sharedData = SharedData()
 
-def sim_mpu(): 
-    while True and not sharedData.closing: 
-        # print("Simulating mpu")
-        sleep(.1)
+

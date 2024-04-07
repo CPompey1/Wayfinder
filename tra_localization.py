@@ -6,7 +6,7 @@ import math
 import time
 import asyncio
 
-from globals import EMITTER_LOC_DICT
+from globals import EMITTER_LOC_DICT,sharedData
 
 #Emitter locaiton dictionary
 #Key        :   Value
@@ -56,6 +56,7 @@ async def localization():
                 if len(location) ==0: continue
                 with open('locationData','a') as file:
                     file.write(f'Estimated Location: {location}\n')
+                sharedData.estimated_location = location
                 beaconManager.clear_closest()
             else:
                 pass
@@ -113,4 +114,4 @@ async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[fl
 
     return estimated_location
 
-asyncio.run(main())
+# asyncio.run(main())
