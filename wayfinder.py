@@ -44,7 +44,7 @@ class Wayfinder_UI:
         dev_mode_button = ttk.Button(master=dev_mode_frame, text= "Developer Mode", command = self.developer_mode)
         dev_mode_button.pack(side = 'left')
         dev_mode_frame.pack(pady=10)
-        self.master.mainloop()
+        self.master.update()
 
     # SECOND PAGE FOR SERVICE SELECTION
     

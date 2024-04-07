@@ -13,6 +13,10 @@ from globals import EMITTER_LOC_DICT
 #Mac Address:   emitter location(x,y,z(height))
 
 
+# def print(input):
+#     with open('logData.txt','a') as file:
+#         file.write(f'{input}\n')
+#     return
 
 beaconManager = None
 file1 = None
@@ -21,15 +25,14 @@ closestBeacons =  None
 
 async def main():
     global beaconManager
-    
 
     #overrite with empty bytes
     with open('locationData','w') as file:
         file.write(f'')
 
     beaconManager = BeaconManager()
-    await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
-    
+    a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
+    print(a)
 
         
 async def localization():
@@ -40,15 +43,20 @@ async def localization():
         await asyncio.sleep(.1)
         try:
             i+=1
-            closestBeacons = beaconManager.get_closest()
+
+            
             if beaconManager.closest_full():
+                closestBeacons = beaconManager.get_closest()
+                print("********************************FULL*************************************************")
+                
+                print(f"Beacons: {beaconManager.get_beacons()}")
+                print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
                 location = await tra_localization(closestBeacons,EMITTER_LOC_DICT)
                 if len(location) ==0: continue
                 with open('locationData','a') as file:
                     file.write(f'Estimated Location: {location}\n')
-                print("********************************FULL*************************************************")
-                # beaconManager.clear_closest()
+                beaconManager.clear_closest()
             else:
                 pass
                 #print("not full\n")
@@ -63,8 +71,7 @@ async def localization():
             file1.close()
             return
         
-        print(f"Beacons: {beaconManager.get_beacons()}")
-        print(f"Closest Beacons: {beaconManager.get_closest()}")
+        
 
     
 async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:

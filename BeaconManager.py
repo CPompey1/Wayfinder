@@ -4,9 +4,12 @@ import bleak
 import asyncio
 from globals import EMITTER_LOC_DICT,sharedData
 import signal
-class AdvertisementTimeoutException(Exception):
-    pass
 
+
+# def print(input):
+#     with open('logData.txt','a') as file:
+#         file.write(f'{input}\n')
+#     return
 class BeaconManager:
     MAX_RSI = 200
     MAX_UNIQUE = 3
@@ -35,7 +38,9 @@ class BeaconManager:
      
     #Returns beacon with smallest rssi value
     def get_closest(self):
-        return self.closest
+        with self.lock:
+            out = self.closest
+        return out
 
     def clear_closest(self):
         with self.lock: 
@@ -89,7 +94,8 @@ class BeaconManager:
             if not beacon_addr in EMITTER_LOC_DICT.keys(): 
                 continue
             
-
+            
+            if not beacon_addr in self.beacons.keys(): print("***************New Beacon***************!") 
             self.beacons[beacon_addr] = (beacon,beacon_rssi)
 
             # #If number of unqiue beacons is less than 3 and the adress doesnt already exist in unqie beacons
@@ -103,13 +109,15 @@ class BeaconManager:
         
             with self.lock:
             # if not (beacon_addr in self.closest_addr and self.num_closest > 2): 
+                #if beacon exists already
                 for i in range(len(self.closest)):
                     beaconTuple = self.closest[i]
                     if done: break
                     if not beaconTuple == None and beacon_addr in beaconTuple:
                         self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
+                        print("Updated a closest beacon")
                         done = True
-                
+                #if theres a None value
                 for i in range(len(self.closest)):
                     beaconTuple = self.closest[i]
                     if done: break
@@ -117,14 +125,17 @@ class BeaconManager:
                     if  beaconTuple == None:
                         self.newBatch = (self.newBatch + 1)%3
                         self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
+                        print("added a new closest beacon")
+                        
                         done = True
-                
+                #if theres a new closer beacon
                 for i in range(len(self.closest)):
                     beaconTuple = self.closest[i]
                     if done: break
 
                     if abs(int(beacon_rssi)) < beaconTuple[2]:
                         self.closest[i] = (beacon_addr,beacon,abs(int(beacon_rssi)))
+                        print("added a new closest beacon")
                         done = True
 
 
