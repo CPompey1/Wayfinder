@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 import threading
@@ -35,10 +36,11 @@ class MpuClass:
         
         return sharedData.values
 
-    def sim_mpu(self): 
+    async def sim_mpu(self): 
         while True and not sharedData.closing: 
             print("Simulating mpu")
-            time.sleep(.2)
+            await asyncio.sleep(.1)
+        # print("WTFFFFFFFFFWTWTFWTWTWWTWTFWTFTWFWTFWTFWTFWADSADSA************")
 
     def _read_sensor(self):
         self.imu.readSensor()
@@ -58,7 +60,8 @@ class MpuClass:
 
             self.sensorfusion.computeAndUpdateRollPitchYaw(self.imu.AccelVals[0], self.imu.AccelVals[1], self.imu.AccelVals[2], self.imu.GyroVals[0], self.imu.GyroVals[1], self.imu.GyroVals[2],\
                                                         self.imu.MagVals[0], self.imu.MagVals[1], self.imu.MagVals[2], dt)
-            time.sleep(0.01)
+            yield
+            # time.sleep(0.01)
     
     def close(self):
         if not sharedData.closing: sharedData.closing = True
@@ -66,7 +69,8 @@ class MpuClass:
 
     async def runMpu(self):
         if SIMULATION:
-            self.sim_mpu()
+            await self.sim_mpu()
+            return
 
         address = 0x68
         bus = smbus.SMBus(1)

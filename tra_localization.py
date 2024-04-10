@@ -6,7 +6,8 @@ import math
 import time
 import asyncio
 
-from globals import EMITTER_LOC_DICT,sharedData
+from MPU.run_mpu import MpuClass
+from globals import EMITTER_LOC_DICT,sharedData,SIMULATION
 
 #Emitter locaiton dictionary
 #Key        :   Value
@@ -31,8 +32,17 @@ async def main():
         file.write(f'')
 
     beaconManager = BeaconManager()
-    a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
-    print(a)
+    mpu = MpuClass()
+    # a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
+    a = asyncio.create_task(localization())
+    b = asyncio.create_task(beaconManager.initialize_scanning())
+    c = asyncio.create_task(mpu.sim_mpu())
+    
+    await a
+    await b
+    await c
+
+    # print(a)
 
         
 async def localization():

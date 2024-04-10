@@ -1,3 +1,4 @@
+from multiprocessing import Process
 import time
 from tkinter import *
 import tkinter as tk
@@ -43,13 +44,31 @@ async def runNavigation(manager):
             else:
                 # print("not full\n")
                 pass
-            yield
+            
         # await asyncio.sleep(1)
+
+def create_tkinter_window():
+    root = tk.Tk()
+    root.title("Tkinter Window")
+
+    label = tk.Label(root, text="Tkinter window running in a separate thread")
+    label.pack()
+
+    root.mainloop()
+
+def start_tkinter_thread():
+    filename = open("services.json")
+    services_from_jason = json.load(filename)
+
+    wayfinder = Wayfinder_UI(services_from_jason)
+
+    tkinter_thread = threading.Thread(target=create_tkinter_window)
+    tkinter_thread.start()
 
 async def main():
     # Read json file for services and rooms 
-    filename = open("services.json")
-    services_from_jason = json.load(filename)
+    # filename = open("services.json")
+    # services_from_jason = json.load(filename)
 
     # self.mpu = MpuClass()
         # if not SIMULATION: 
@@ -59,23 +78,29 @@ async def main():
         # else:
         #     self.mpu_thread = threading.Thread(target=sim_mpu, daemon=True)
         #     self.mpu_thread.start()
-    # beaconManager = BeaconManager()
     beaconManager = BeaconManager()
+    # beaconManager = BeaconManager()
     mpu = MpuClass()
-    wayfinder = Wayfinder_UI(services_from_jason)
+    # wayfinder = Wayfinder_UI(services_from_jason)
     # await wayfinder.start(),await mpu.runMpu()
-    # beacon_task = asyncio.create_task(beaconManager.initialize_scanning())
-    # navigatoin_task = asyncio.create_task(runNavigation(beaconManager))
+    beacon_task = asyncio.create_task(beaconManager.initialize_scanning())
+    navigatoin_task = asyncio.create_task(runNavigation(beaconManager))
     # wayfinder_ui_task = asyncio.create_task(wayfinder.start())
-    # mpu_task = asyncio.create_task(mpu.runMpu())
-    a = asyncio.gather(await asyncio.create_task(wayfinder.start()),
-                       await asyncio.create_task(mpu.runMpu()),
-                     await asyncio.create_task(beaconManager.initialize_scanning()),
-                       await asyncio.create_task(runNavigation(beaconManager)),
-                       )
+    mpu_task = asyncio.create_task(mpu.runMpu())
+    
+    # wayfinder_task = asyncio.create_task(wayfinder.start())
+    # a = await asyncio.gather(asyncio.create_task(mpu.runMpu()),
+    #                   asyncio.create_task(beaconManager.initialize_scanning()),
+    #                 asyncio.to_thread(wayfinder.start),
+    #                    )# asyncio.create_task(runNavigation(beaconManager))
     
     # wayfinder = Wayfinder_UI(services_from_jason)
+    # wayfinder.start()
     
+    start_tkinter_thread()
+    await beacon_task
+    await mpu_task
+    await navigatoin_task
 
     # self.mpu = MpuClass()
         # if not SIMULATION: 

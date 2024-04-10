@@ -32,11 +32,11 @@ class Wayfinder_UI():
     # Change this based on display dimensions
         super().__init__()
         #initliize beacon manager and threads
-        self.beaconManager = BeaconManager()
+        # self.manager = BeaconManager()
         # self.manager.initialize_scanning()
         # self.bfs = BFS()
         # self.navigation_thread = None
-        self.mpu = MpuClass()
+        # self.mpu = MpuClass()
         # if not SIMULATION: 
             
         #     self.mpu_thread = threading.Thread(target=runMpu, daemon=True)
@@ -69,24 +69,6 @@ class Wayfinder_UI():
         self.master.bind("<Escape>", lambda e: self.master.quit())
         self.master = self.master
         
-        # title_label = Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
-        # img = ImageTk.PhotoImage(Image.open("lockwood_main.jpg"))
-        # panel = Label(self.master, image=img)
-        # panel.pack()
-        # start_frame = Frame(master=self.master, bg="white")
-        # start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = self.stairs_or_el)
-        # start_button.pack(side = 'left')
-        # start_frame.pack(pady=10)
-        # dev_mode_frame = Frame(master=self.master, bg="white")
-        # dev_mode_button = ttk.Button(master=dev_mode_frame, text= "Developer Mode", command = self.developer_mode)
-        # dev_mode_button.pack(side = 'left')
-        # dev_mode_frame.pack(pady=10)
-        # self.selected = False
-        # self.master.mainloop()
-    async def start(self):
-        
-
-        
         title_label = Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
         img = ImageTk.PhotoImage(Image.open("lockwood_main.jpg"))
         panel = Label(self.master, image=img)
@@ -100,15 +82,24 @@ class Wayfinder_UI():
         dev_mode_button.pack(side = 'left')
         dev_mode_frame.pack(pady=10)
         self.selected = False
-
-        self.start_thread1_button = tk.Button(self, text="Start Thread 1", command=self.start_thread1)
-        self.start_thread1_button.pack()
-
-        
-        # while True:
-        #     self.master.update()
-        #     await asyncio.sleep(.1)
         self.master.mainloop()
+    async def start(self):
+        title_label = Label(master= self.master, text= "Welcome to Lockwood Wayfinder!", font=FONT).pack()
+        img = ImageTk.PhotoImage(Image.open("lockwood_main.jpg"))
+        panel = Label(self.master, image=img)
+        panel.pack()
+        start_frame = Frame(master=self.master, bg="white")
+        start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = self.stairs_or_el)
+        start_button.pack(side = 'left')
+        start_frame.pack(pady=10)
+        dev_mode_frame = Frame(master=self.master, bg="white")
+        dev_mode_button = ttk.Button(master=dev_mode_frame, text= "Developer Mode", command = self.developer_mode)
+        dev_mode_button.pack(side = 'left')
+        dev_mode_frame.pack(pady=10)
+        self.selected = False
+        while True:
+            self.master.update()
+            await asyncio.sleep(.1)
     # SECOND PAGE FOR SERVICE SELECTION
     # https://www.youtube.com/watch?v=wFyzmZVKPAw    useful video for multiple pages layout
             
@@ -507,27 +498,3 @@ def flatten(list_of_list):
         return fin_list
     else:
         return [list_of_list]
-async def runNavigation(manager):
-    await asyncio.sleep(5)
-    # while not sharedData.closing:
-        # while sharedData.navigation_started and not sharedData.closing:
-    while(True):
-            # await asyncio.sleep(.1)
-            
-            closest_beacons = manager.get_closest()
-            all_beacons = manager.get_beacons()
-            if manager.closest_full():
-                print("********************************FULL*************************************************")
-                print(f"Beacons: {all_beacons}")
-                print(f"Closest Beacons: {closest_beacons}")    
-                print("Entering localization")
-                location = await tra_localization(closest_beacons,EMITTER_LOC_DICT)
-                with sharedData.lock:
-                    sharedData.estimated_location = location
-                with open('locationData','a') as file:
-                        file.write(f'Estimated Location: {location}\n')
-                manager.clear_closest()
-            else:
-                # print("not full\n")
-                pass
-            
