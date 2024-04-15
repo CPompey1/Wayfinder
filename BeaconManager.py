@@ -2,7 +2,7 @@ import threading
 from bleak import BleakScanner, BleakClient
 import bleak
 import asyncio
-from globals import EMITTER_LOC_DICT,sharedData
+from globals import EMITTER_LOC_DICT, sharedData
 import signal
 
 

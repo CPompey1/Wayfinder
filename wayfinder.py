@@ -181,6 +181,7 @@ class Wayfinder_UI():
         room_lb.grid(column=1, row=0, sticky='nwse', padx=0, pady=2)
         room_lb.bind('<Double-1>', self.service_confirmation)
         self.master.mainloop()
+<<<<<<< HEAD
 
     async def repaint(self,nav_page: Tk, start, goal, user_position, end):
     
@@ -328,6 +329,14 @@ class Wayfinder_UI():
         sharedData.start_navigation()
         # runNavigation(self.manager))s
 
+=======
+       
+    # THIRD PAGE FOR ACTUAL NAVIGATION
+    # HERE THE CODE TO COMMUNICATE BETWEEN THE SELECTED SERVICE AND THE BLUETOOTH CODE
+    def start_navigation(self, goal: StringVar):
+        self.master.destroy()
+        nav_page = Tk()
+>>>>>>> UI
         nav_page.title('Wayfinder')
         #nav_page.geometry(self.SCREEN_DIMENSION)
         nav_page.geometry("%dx%d" % (nav_page.winfo_screenwidth(), nav_page.winfo_screenheight()))
@@ -344,6 +353,7 @@ class Wayfinder_UI():
         #label_ser.pack()
 
         # Here the data coming from the beacon 
+<<<<<<< HEAD
         start = [130,0]
 
         # Destination comes from JSON file and user selection
@@ -394,11 +404,60 @@ class Wayfinder_UI():
 
     # Pop-up message to select stairs over elevator
     async def stairs_or_el(self):
+=======
+        start = [0,0]
+        goal = [40, 550]
+
+        self.draw_path(nav_page, start, goal)
+
+        nav_page.mainloop()
+    
+    # DEVELOPER MODE TO CHECK ON EMITTERS FUNCTIONALITIES
+    def developer_mode(self):
+        #self.input_text = StringVar()
+        #self.input_text.set("")
+        #dev_page = tk.Tk()
+        #dev_page.configure(background="white")
+        #dev_page.geometry("%dx%d" % (dev_page.winfo_screenwidth(), dev_page.winfo_screenheight()))
+        #dev_page.title('Insert Password for Developer Mode')
+        #dev_page.state('zoomed')
+        self.master.destroy()
+        passcode_entry = PasscodeEntry(self)
+        self.master.mainloop()
+        """ self.passcode_entry = tk.Entry(dev_page, textvariable=self.input_text, show='*', font=("Arial", 14))
+        self.passcode_entry.grid(row=1, column=0, rowspan=2, columnspan=3, pady=10)
+        #input_field = Entry(pass_frame, font = ('arial', 18, 'bold'), textvariable = self.input_text, justify = CENTER)
+        #input_field.pack()
+        #btns_frame = Frame(dev_page, width = dev_page.winfo_screenwidth(), bg = "grey")
+
+        clear = Button(dev_page, text = "Clear", width=15, height = 5, command = lambda: self.btn_clear(),font='Calibri 12').grid(row = 3, column = 0)
+        enter = Button(dev_page, text = "Enter", width=15, height = 5, command = lambda: self.btn_enter(),font='Calibri 12').grid(row = 3, column = 2)
+        b1 = Button(dev_page, text='1', width=15, height = 5, command= lambda:   lambda: self.btn_click('1'),font='Calibri 12').grid(row = 0, column = 0)
+        b2 = Button(dev_page, text='2', width=15, height = 5, command=  lambda: self.btn_click('2'),font='Calibri 12').grid(row = 0, column = 1)
+        b3 = Button(dev_page, text='3', width=15, height = 5, command=  lambda: self.btn_click('3'), font='Calibri 12').grid(row = 0, column = 2)
+        b4 = Button(dev_page, text='4', width=15, height = 5, command=  lambda: self.btn_click('4'), font='Calibri 12').grid(row = 1, column = 0)
+        b5 = Button(dev_page, text='5', width=15, height = 5, command=  lambda: self.btn_click('5'), font='Calibri 12').grid(row = 1, column = 1)
+        b6 = Button(dev_page, text='6', width=15, height = 5,  command=  lambda: self.btn_click('6'), font='Calibri 12').grid(row = 1, column = 2)
+        b7 = Button(dev_page, text='7', width=15, height = 5, command=  lambda: self.btn_click('7'), font='Calibri 12').grid(row = 2, column = 0)
+        b8 = Button(dev_page, text='8', width=15, height = 5,  command=  lambda: self.btn_click('8'),font='Calibri 12').grid(row = 2, column = 1)
+        b9 = Button(dev_page, text='9', width=15, height = 5, command=  lambda: self.btn_click('9'),font='Calibri 12').grid(row = 2, column = 2)
+        b0 = Button(dev_page, text='0', width=15, height = 5, command=  lambda: self.btn_click('0'),font='Calibri 12').grid(row = 3, column = 1)
+        #dev_page.pack()
+
+        self.master.mainloop() """
+
+    # Pop-up message to select stairs over elevator
+    def stairs_or_el(self):
+>>>>>>> UI
         self.stairs = messagebox.askyesnocancel(title = "Preference", message="Stairs or Elevator? \nYes: Stairs, No: Elevator")
         if self.stairs is not None:
             self.select_service()
 
+<<<<<<< HEAD
     async def service_confirmation(self, args: Event):
+=======
+    def service_confirmation(self, args: Event):
+>>>>>>> UI
         if not args.widget.curselection():
             return
         if not self.selected:
@@ -421,6 +480,7 @@ class Wayfinder_UI():
                 self.start_navigation(sel_service)
             else:
                 self.selected = False
+<<<<<<< HEAD
     
     # Function that draws lines for directions to follow
     async def draw_path(self,page: Tk, before_stairs, after_stairs):
@@ -428,15 +488,38 @@ class Wayfinder_UI():
         # screen.pack(anchor='nw', fill='both', expand=1)
 
         # NEED TO CLEAR THE SCREEN HERE FIRST
+=======
+    def btn_clear(self):
+        self.input_text.set("")
+
+    def btn_click(self, item):
+        self.input_text.set(self.input_text.get() + item)
+
+    def btn_enter(self):
+        # Write code for passcode check
+        print(self.passcode_entry.get())
+
+
+
+    # Function that draws lines for directions to follow
+    def draw_path(page: Tk, start, goal):
+        #screen = Canvas(page, width= 600, height=550, background="black")
+        # screen.pack(anchor='nw', fill='both', expand=1)
+        # https://www.youtube.com/watch?v=5V_cPy2dtTc
+>>>>>>> UI
 
         w = page.winfo_screenwidth()
         h = page.winfo_screenheight()
         screen = Canvas(master=page, width=w, height=h)
         screen.pack(anchor="center")
+<<<<<<< HEAD
         if(len(before_stairs) != 0):
             img_floor = Image.open("flr" + str(before_stairs[0][0][2]) + "_larger.jpg")
         else:  
             img_floor = Image.open("flr" + str(after_stairs[0][0][2]) + "_larger.jpg")
+=======
+        img_floor = Image.open("flr4.jpg")
+>>>>>>> UI
         img_floor = ImageOps.exif_transpose(img_floor)
         width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
         img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
@@ -447,6 +530,7 @@ class Wayfinder_UI():
         # Play with position
         screen.create_image(0,0, image= img_tk, anchor= "nw")
         #screen.create_line(start[0],start[1],goal[0], goal[1], fill="red", width = 3)
+<<<<<<< HEAD
         page.update()
         
         if len(before_stairs) != 0:
@@ -531,3 +615,83 @@ async def runNavigation(manager):
                 # print("not full\n")
                 pass
             
+=======
+        page.mainloop()
+
+
+class PasscodeEntry:
+    def __init__(self, ui: Wayfinder_UI):
+        self.root = Tk()
+        self.root.configure(background="white")
+        self.root.geometry("%dx%d" % (self.root.winfo_screenwidth(), self.root.winfo_screenheight()))
+        self.root.title('Insert Password for Developer Mode')
+        passcode_frame = Frame(master=self.root, bg="white")
+        self.master = passcode_frame
+        ui.master = self.root
+        #self.master.title("Passcode Entry")
+        self.passcode = tk.StringVar()
+        self.passcode.set("")
+        self.enter = False      # True when Enter is pressed
+        self.right_wrong_label = tk.Label(self.root, text = "")
+        
+        self.entry_label = tk.Label(self.master, text="Enter Passcode:")
+        self.entry_label.grid(row=0, column=0, columnspan=3)
+
+        self.passcode_entry = tk.Entry(self.master, textvariable=self.passcode, show='*', font=("Arial", 14))
+        self.passcode_entry.grid(row=1, column=0, columnspan=3, pady=10)
+
+        self.keypad_buttons = [
+            '1', '2', '3',
+            '4', '5', '6',
+            '7', '8', '9',
+        ]
+
+        row_num = 2
+        col_num = 0
+        for key in self.keypad_buttons:
+            button = tk.Button(self.master, text=key, width=5, height=2, command=lambda key=key: self.update_passcode(key))
+            button.grid(row=row_num, column=col_num, padx=5, pady=5)
+            col_num += 1
+            if col_num > 2:
+                col_num = 0
+                row_num += 1
+        
+        
+        self.clear_button = tk.Button(self.master, text="Clear", width=5, height=2, command=self.clear_passcode)
+        self.clear_button.grid(row=row_num, column=0, padx=5, pady=5)
+        zero_button = tk.Button(self.master, text='0', width=5, height=2, command=lambda key=key: self.update_passcode('0'))
+        zero_button.grid(row=row_num, column=1, padx=5, pady=5)
+        self.enter_button = tk.Button(self.master, text="Enter", width=5, height=2, command=self.enter_passcode)
+        self.enter_button.grid(row=row_num, column=2, padx=5, pady=5)
+        self.master.pack()
+
+    def update_passcode(self, key):
+        if not self.enter:
+            self.passcode.set(self.passcode.get() + key)
+
+    def clear_passcode(self):
+        self.passcode.set("")
+        self.enter = False
+
+    def enter_passcode(self):
+        print("Passcode entered:", self.passcode.get())
+        #self.right_label = tk.Label(self.root, text = "Right passcode!").pack()
+        if self.passcode.get() == str(3054):
+            self.right_wrong_label.configure(text="Right passcode!")
+            self.enter = True
+        else:
+            self.right_wrong_label.configure(text="Wrong passcode!")
+        self.right_wrong_label.pack()
+        self.passcode.set("")
+
+
+
+if __name__ == '__main__': 
+    # Read json file for services and rooms 
+    services_filename = open("services.json")
+    nodes_filename = open("node.json")
+    services_json = json.load(services_filename)
+    nodes_json = json.load(nodes_filename)
+    # Call Wayfinder UI
+    wayfinder = Wayfinder_UI(services_json, nodes_json)
+>>>>>>> UI
