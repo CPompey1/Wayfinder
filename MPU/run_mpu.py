@@ -36,10 +36,11 @@ class MpuClass:
         
         return sharedData.values
 
-    async def sim_mpu(self): 
+    def sim_mpu(self): 
         while True and not sharedData.closing: 
-            print("Simulating mpu")
-            await asyncio.sleep(.1)
+            # print("Simulating mpu")
+            time.sleep(.1)
+            
         # print("WTFFFFFFFFFWTWTFWTWTWWTWTFWTFTWFWTFWTFWTFWADSADSA************")
 
     def _read_sensor(self):
@@ -67,9 +68,9 @@ class MpuClass:
         if not sharedData.closing: sharedData.closing = True
         self.mpu_thread.join()
 
-    async def runMpu(self):
+    def runMpu(self):
         if SIMULATION:
-            await self.sim_mpu()
+            self.sim_mpu()
             return
 
         address = 0x68

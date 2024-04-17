@@ -45,16 +45,16 @@ async def main():
     # print(a)
 
         
-async def localization():
-    global beaconManager
+def localization(beaconManager):
+    
     i = 0
-    await asyncio.sleep(5)
+    time.sleep(5)
     while (True):
-        await asyncio.sleep(.1)
+        time.sleep(.1)
         try:
             i+=1
 
-            
+            print("localization")
             if beaconManager.closest_full():
                 closestBeacons = beaconManager.get_closest()
                 print("********************************FULL*************************************************")
@@ -62,7 +62,7 @@ async def localization():
                 print(f"Beacons: {beaconManager.get_beacons()}")
                 print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
-                location = await tra_localization(closestBeacons,EMITTER_LOC_DICT)
+                location = tra_localization(closestBeacons,EMITTER_LOC_DICT)
                 if len(location) ==0: continue
                 with open('locationData','a') as file:
                     file.write(f'Estimated Location: {location}\n')
@@ -78,14 +78,14 @@ async def localization():
 
         except KeyboardInterrupt:
             print("CLOSING")
-            await beaconManager.close()
+            beaconManager.close()
             file1.close()
             return
         
         
 
     
-async def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
+def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
     
     #cloest3_beacon_list = beaconManager.closest
   

@@ -1,4 +1,5 @@
 import threading
+import time
 from bleak import BleakScanner, BleakClient
 import bleak
 import asyncio
@@ -27,12 +28,17 @@ class BeaconManager:
         self.numUnique = 0
         self.closing = False
         self.lock = threading.Lock()
-    async def initialize_scanning(self):
+    def initialize_scanning(self):
 
-        await self.scanner.start()
-        self.beaconUpdater = asyncio.create_task(self.update_beacons())
-        
-        await asyncio.sleep(1)
+        self.scanner.start()
+        # self.event_loop = asyncio.new_event_loop()
+
+        # self.beaconUpdater = threading.Thread(target=self.update_beacons)
+        # self.beaconUpdater = asyncio.create_task(self.update_beacons())
+        with asyncio.Runner() as runner:
+            asyncio.run(self.update_beacons())
+        # self.beaconUpdater.start()
+        # asyncio.sleep(1)
        
         
      
@@ -74,13 +80,15 @@ class BeaconManager:
         self.numUnique = 0
         self.uniqueBeacons = {}
 
-    async def update_beacons(self):
+    def update_beacons(self):
 
+        print("starting update_beacons....")
 
         with open('locationData','a') as file:
              file.write(f'STARTING UPDATE BEACOSN\n')
-        async for beacon,ad_packet in self.scanner.advertisement_data() :
-            await asyncio.sleep(.1)
+        for beacon,ad_packet in self.scanner.advertisement_data() :
+            print("updating beacons")
+            time.sleep(.1)
             if self.closing: return
 
             # print(f"Beacon Device {beacon}\n advertisement: {ad_packet}")

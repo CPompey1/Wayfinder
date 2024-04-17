@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
@@ -31,7 +32,7 @@ class tkinterApp(tk.Tk):
 		self.beaconManager = BeaconManager()
 		self.mpu = MpuClass()
 		self.started = False
-
+		self.event_loop = asyncio.get_event_loop()
 		#self.geometry("%dx%d" % (self.winfo_screenwidth(), self.winfo_screenheight()))
 		self.geometry("768x1024")
 		# Container
@@ -92,12 +93,21 @@ class tkinterApp(tk.Tk):
 		frame = self.frames[cont]
 		frame.tkraise()
 
-	async def enable_navigation(self, cont):
+	def enable_navigation(self, cont):
 		frame = self.frames[cont]
 		frame.tkraise()
 		# if not self.started:
+		if not self.started:
+			self.started = True
+			self.initialize_task_thread = threading.Thread(target=self.beaconManager.initialize_scanning)
+			self.localization_thread = threading.Thread(target=localization,args=(self.beaconManager,))
 			
-		# 	self.started = True
+			self.mpu_tread = threading.Thread(target=self.mpu.runMpu)
+
+			self.localization_thread.start()
+			self.initialize_task_thread.start()
+			self.mpu_tread.start()
+		# 	self.started = Tru
 		# 	self.localization_thread = asyncio.create_task(localization())
 		# 	self.initialize_task = asyncio.create_task(self.beaconManager.initialize_scanning())
 		# 	self.create_task = (self.mpu.run_mpu())
