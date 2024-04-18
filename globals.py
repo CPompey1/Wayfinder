@@ -65,6 +65,7 @@ class SharedData:
         self.closing = False
         self.beacon_manager_lock = threading.Lock()
         self.navigation_started = True
+        self.orientation = None
     def get_orientation(self):
         with self.lock:
             out = self.estimated_location
