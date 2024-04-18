@@ -384,15 +384,15 @@ class NavigationPage(tk.Frame):
 			else:
 				after_stairs.append([self.controller.bfs.nodes[start[i]]["location"],self.controller.bfs.nodes[goal[i]]["location"]])
 
-			if len(after_stairs) != 0:
-				after_stairs.append([after_stairs[len(after_stairs) - 1][1],end])
-			else:
-				after_stairs.append([self.controller.bfs.nodes[goal[len(goal) - 1]]["location"],end])
+		if len(after_stairs) != 0:
+			after_stairs.append([after_stairs[len(after_stairs) - 1][1],end])
+		else:
+			after_stairs.append([self.controller.bfs.nodes[goal[len(goal) - 1]]["location"],end])
 
-			if twoFloors:
-				before_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), before_stairs[0][0]])
-			else:
-				after_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), after_stairs[0][0]])
+		if twoFloors:
+			before_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), before_stairs[0][0]])
+		else:
+			after_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), after_stairs[0][0]])
 
         #NEED USER POSITION = NEAREST_NODE_ID
         # nearest_node = self.bfs.find_nearest_node_feet()
