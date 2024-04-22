@@ -62,19 +62,20 @@ def flatten(list_of_list):
         return [list_of_list]
 	
 def grid2Pixel(inp,floor):
-    if(floor == 0):
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_B_X) + ELEVATOR_PIXEL_X_FLOOR_B + (PIXELS_PER_GRID_FLOOR_B_X / 2), ELEVATOR_PIXEL_Y_FLOOR_B - (inp[1] * PIXELS_PER_GRID_FLOOR_B_Y) - (PIXELS_PER_GRID_FLOOR_B_Y / 2)]
-    elif(floor == 1):
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_1_X) + ELEVATOR_PIXEL_X_FLOOR_1 + (PIXELS_PER_GRID_FLOOR_1_X / 2), ELEVATOR_PIXEL_Y_FLOOR_1 - (inp[1] * PIXELS_PER_GRID_FLOOR_1_Y) - (PIXELS_PER_GRID_FLOOR_1_Y / 2)]
-    elif(floor == 2):
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_2_X) + ELEVATOR_PIXEL_X_FLOOR_2 + (PIXELS_PER_GRID_FLOOR_2_X / 2), ELEVATOR_PIXEL_Y_FLOOR_2 - (inp[1] * PIXELS_PER_GRID_FLOOR_2_Y) - (PIXELS_PER_GRID_FLOOR_2_Y / 2)]
-    elif(floor == 3):
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_3_X) + ELEVATOR_PIXEL_X_FLOOR_3 + (PIXELS_PER_GRID_FLOOR_3_X / 2), ELEVATOR_PIXEL_Y_FLOOR_3 - (inp[1] * PIXELS_PER_GRID_FLOOR_3_Y) - (PIXELS_PER_GRID_FLOOR_3_Y / 2)]
-    elif(floor == 4):
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_4_X) + ELEVATOR_PIXEL_X_FLOOR_4 + (PIXELS_PER_GRID_FLOOR_4_X / 2), ELEVATOR_PIXEL_Y_FLOOR_4 - (inp[1] * PIXELS_PER_GRID_FLOOR_4_Y) - (PIXELS_PER_GRID_FLOOR_4_Y / 2)]
-    else:
-        return [(inp[0] * PIXELS_PER_GRID_FLOOR_5_X) + ELEVATOR_PIXEL_X_FLOOR_5 + (PIXELS_PER_GRID_FLOOR_5_X / 2), ELEVATOR_PIXEL_Y_FLOOR_5 - (inp[1] * PIXELS_PER_GRID_FLOOR_5_Y) - (PIXELS_PER_GRID_FLOOR_5_Y / 2)]
-  
+	match(floor):
+		case 0:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_B_X) + ELEVATOR_PIXEL_X_FLOOR_B + (PIXELS_PER_GRID_FLOOR_B_X / 2), ELEVATOR_PIXEL_Y_FLOOR_B - (inp[1] * PIXELS_PER_GRID_FLOOR_B_Y) - (PIXELS_PER_GRID_FLOOR_B_Y / 2)]
+		case 1:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_1_X) + ELEVATOR_PIXEL_X_FLOOR_1 + (PIXELS_PER_GRID_FLOOR_1_X / 2), ELEVATOR_PIXEL_Y_FLOOR_1 - (inp[1] * PIXELS_PER_GRID_FLOOR_1_Y) - (PIXELS_PER_GRID_FLOOR_1_Y / 2)]
+		case 2:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_2_X) + ELEVATOR_PIXEL_X_FLOOR_2 + (PIXELS_PER_GRID_FLOOR_2_X / 2), ELEVATOR_PIXEL_Y_FLOOR_2 - (inp[1] * PIXELS_PER_GRID_FLOOR_2_Y) - (PIXELS_PER_GRID_FLOOR_2_Y / 2)]
+		case 3:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_3_X) + ELEVATOR_PIXEL_X_FLOOR_3 + (PIXELS_PER_GRID_FLOOR_3_X / 2), ELEVATOR_PIXEL_Y_FLOOR_3 - (inp[1] * PIXELS_PER_GRID_FLOOR_3_Y) - (PIXELS_PER_GRID_FLOOR_3_Y / 2)]
+		case 4:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_4_X) + ELEVATOR_PIXEL_X_FLOOR_4 + (PIXELS_PER_GRID_FLOOR_4_X / 2), ELEVATOR_PIXEL_Y_FLOOR_4 - (inp[1] * PIXELS_PER_GRID_FLOOR_4_Y) - (PIXELS_PER_GRID_FLOOR_4_Y / 2)]
+		case 5:
+			return [(inp[0] * PIXELS_PER_GRID_FLOOR_5_X) + ELEVATOR_PIXEL_X_FLOOR_5 + (PIXELS_PER_GRID_FLOOR_5_X / 2), ELEVATOR_PIXEL_Y_FLOOR_5 - (inp[1] * PIXELS_PER_GRID_FLOOR_5_Y) - (PIXELS_PER_GRID_FLOOR_5_Y / 2)]
+
 
 	
 class tkinterApp(tk.Tk):
@@ -82,10 +83,11 @@ class tkinterApp(tk.Tk):
 		tk.Tk.__init__(self)
 		#init classes
 		self.loop = loop
-
+		
 		self.flags = [True, False, False, False, False]
 
 		self.beaconManager = BeaconManager()
+		self.loop.create_task(self.beaconManager.update_beacons())
 		self.mpu = MpuClass()
 		self.bfs = BFS()
 		self.navigation_thread = None
@@ -168,21 +170,26 @@ class tkinterApp(tk.Tk):
 		# if not self.started:
 		if not self.started:
 			self.started = True
-			# self.initialize_task_thread = threading.Thread(target=self.beaconManager.initialize_scanning)
+			# self.loop.create_task
+			# (target=self.beaconManager.initialize_scanning)
+			# self.loop.create_task(self.beaconManager.update_beacons())
+			# self.initialize_task_thread = asyncio.run(self.beaconManager.initialize_scanning())
 			self.localization_thread = threading.Thread(target=localization,args=(self.beaconManager,))
-			
+			# self.initialize_task_thread = asyncio.create_task(self.beaconManager.initialize_scanning())
 			self.mpu_tread = threading.Thread(target=self.mpu.runMpu)
 
 			self.localization_thread.start()
 			
 			# self.initialize_task_thread.start()
 			self.mpu_tread.start()
+
+			print("started threads")
 		# 	self.started = Tru
 		# 	self.localization_thread = asyncio.create_task(localization())
 		# 	self.create_task = (self.mpu.run_mpu())
 
 		# 	await self.localization_thread
-		# 	await self.initialize_task
+			# await self.initialize_task
 		# 	await self.create_task
 
 

@@ -30,15 +30,17 @@ class BeaconManager:
         self.lock = threading.Lock()
     async def initialize_scanning(self):
 
-        self.scanner.start()
+        await self.scanner.start()
         # self.event_loop = asyncio.new_event_loop()
 
-        self.beaconUpdater = threading.Thread(target=self.update_beacons)
-        # self.beaconUpdater = await asyncio.create_task(self.update_beacons())
+        await asyncio.sleep(1)
+        # self.beaconUpdater = threading.Thread(target=self.update_beacons)
+        await self.update_beacons()
         # with asyncio.Runner() as runner:
         #     asyncio.run(self.update_beacons())
-        self.beaconUpdater.start()
-        asyncio.sleep(1)
+        # self.beaconUpdater.start()
+        
+        # await self.beaconUpdater
        
         
      
@@ -81,8 +83,8 @@ class BeaconManager:
         self.uniqueBeacons = {}
 
     async def update_beacons(self):
-
-
+        await self.scanner.start()
+        await asyncio.sleep(1)
     # while True:
         # foundBeaocons = await self.scanner.discover(timeout=2)
         # print("starting update_beacons....")
@@ -91,10 +93,10 @@ class BeaconManager:
         #     file.write(f'STARTING UPDATE BEACOSN\n')
         
         # foundBeaocons = self.scanner.discovered_devices
-
-        for beacon,ad_packet in self.scanner.advertisement_data():
-            print("updating beacons")
-            time.sleep(.1)
+        print("Starting update beacons*******************")
+        async for beacon,ad_packet in self.scanner.advertisement_data():
+            print("updating beacons*******************")
+            await asyncio.sleep(.1)
             if self.closing: return
 
             # print(f"Beacon Device {beacon}\n advertisement: {ad_packet}")
