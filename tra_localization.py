@@ -1,39 +1,110 @@
+import threading
 from scipy.optimize import minimize
 import numpy as np
 from BeaconManager import BeaconManager
 import math
+import time
+import asyncio
+
+from MPU.run_mpu import MpuClass
+from globals import EMITTER_LOC_DICT,sharedData,SIMULATION
+
+#Emitter locaiton dictionary
+#Key        :   Value
+#Mac Address:   emitter location(x,y,z(height))
 
 
-emitter_location_dic = {"DD340207E30A": [7.85,-27.6,8.5], 
-                        "DD340208F9FC": [56.6,-45.68,8.5], 
-                        "DD340208FD1E": [75.44, -64.52, 8.5], 
-                        "DD340208FC89": [75.44, 22.65, 3.17], 
-                        "DD340208FD59": [57.19, -22.35, 8.5], 
-                        "DD340208FBB1": [57.19, 37.98, 9.25], 
-                        "DD340208FC48": [75.44, 22.65, 3.17]}
+# def print(input):
+#     with open('logData.txt','a') as file:
+#         file.write(f'{input}\n')
+#     return
 
+beaconManager = None
+file1 = None
+closestBeacons =  None
 #signal_a, b, c should be int, name_a, b, c should be string. Emitter_location_dic is a dictionary which key: name of emitter(string)  value: location(list)
-def tra_localization():
-    
-    beaconMana = BeaconManager()
-    cloest3_beacon_list= sorted(beaconMana.closest.items(), key=lambda x: x[2])[:3]
-    
-    # point a, b, c is the location of the emitter
-    point_a = emitter_location_dic[cloest3_beacon_list[0][1]]
-    point_b = emitter_location_dic[cloest3_beacon_list[1][1]]
-    point_c = emitter_location_dic[cloest3_beacon_list[2][1]]
-    # Example known points (x, y, z)
-    points = np.array([point_a, point_b, point_c])
 
-    # distance is the distance from each emitter
-    # dis_a = 9.2143 * math.log(cloest3_beacon_list[0][2]) + 47.283
-    # dis_b = 9.2143 * math.log(cloest3_beacon_list[1][2]) + 47.283
-    # dis_c = 9.2143 * math.log(cloest3_beacon_list[2][2]) + 47.283
+async def main():
+    global beaconManager
+
+    #overrite with empty bytes
+    with open('locationData','w') as file:
+        file.write(f'')
+
+    beaconManager = BeaconManager()
+    mpu = MpuClass()
+    # a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
+    a = asyncio.create_task(localization())
+    b = asyncio.create_task(beaconManager.initialize_scanning())
+    c = asyncio.create_task(mpu.sim_mpu())
     
-    dis_a = 51.044 * math.log(cloest3_beacon_list[0][2]) - 200.8
-    dis_b = 51.044 * math.log(cloest3_beacon_list[1][2]) - 200.8
-    dis_c = 51.044 * math.log(cloest3_beacon_list[2][2]) - 200.8
+    await a
+    await b
+    await c
+
+    # print(a)
+
+        
+def localization(beaconManager):
+    
+    i = 0
+    time.sleep(5)
+    while (True):
+        time.sleep(.1)
+        try:
+            i+=1
+
+            print("localization")
+            if beaconManager.closest_full():
+                closestBeacons = beaconManager.get_closest()
+                print("********************************FULL*************************************************")
+                
+                print(f"Beacons: {beaconManager.get_beacons()}")
+                print(f"Closest Beacons: {beaconManager.get_closest()}")    
+                print("Entering localization")
+                location = tra_localization(closestBeacons,EMITTER_LOC_DICT)
+                if len(location) ==0: continue
+                with open('locationData','a') as file:
+                    file.write(f'Estimated Location: {location}\n')
+                sharedData.estimated_location = location
+                beaconManager.clear_closest()
+            else:
+                pass
+                #print("not full\n")
+            
+            
+            with open('locationData','a') as file:
+                    file.write(f'Iteration: {i}\n')
+
+        except KeyboardInterrupt:
+            print("CLOSING")
+            beaconManager.close()
+            file1.close()
+            return
+        
+        
+
+    
+def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
+    
+    #cloest3_beacon_list = beaconManager.closest
   
+    try:
+        # point a, b, c is the location of the emitter
+        point_a = emitter_location_dic[cloest3_beacon_list[0][0]]
+        point_b = emitter_location_dic[cloest3_beacon_list[1][0]]
+        point_c = emitter_location_dic[cloest3_beacon_list[2][0]]
+
+        # Example known points (x, y, z)
+        points = np.array([point_a, point_b, point_c])
+
+        # distance is the distance from each emitter
+        dis_a = 51.044 * math.log(int(cloest3_beacon_list[0][2])) - 200.8
+        dis_b = 51.044 * math.log(int(cloest3_beacon_list[1][2])) - 200.8
+        dis_c = 51.044 * math.log(int(cloest3_beacon_list[2][2])) - 200.8
+    except Exception as e:
+        # print(e)
+        return []
 
     # Example distances from the unknown point to each of the known points
     distances = np.array([dis_a, dis_b, dis_c])
@@ -51,6 +122,6 @@ def tra_localization():
     # Extract the estimated location of the unknown point
     estimated_location = result.x
 
-    print("Estimated location:", estimated_location)
+    return estimated_location
 
-    beaconMana.clear_closest()
+# asyncio.run(main())
