@@ -112,6 +112,8 @@ class tkinterApp(tk.Tk):
 		container.grid_columnconfigure(2, weight = 1)
 		container.grid_rowconfigure(3, weight = 1)
 		container.grid_columnconfigure(3, weight = 1)
+		self.ck_bool_dict = {}
+		self.ck_button_dict = {}
 
 
 		# initializing frames to an empty dictionary
@@ -137,8 +139,6 @@ class tkinterApp(tk.Tk):
 		self.enter = False
 		self.sel_room = StringVar()
 		self.sel_service = "All services"
-		self.ck_bool = []
-		self.ck_button = []
 		# iterating through a tuple consisting
 		# of the different page layouts
 		for F in (StartPage, ServicesSearch, NavigationPage, PasswordCheck, DeveloperMode):
@@ -588,6 +588,12 @@ class PasswordCheck(tk.Frame):
 		self.enter_button = tk.Button(passcode_frame, text="Enter", width=5, height=2, command=self.enter_passcode)
 		self.enter_button.grid(row=row_num, column=2, padx=5, pady=5)
 		passcode_frame.pack()
+		self.back_butt = ttk.Button(self, text= "Home", width= 20, command = self.home).pack(padx=5, pady=5)
+
+	def home(self):
+		self.clear_passcode()
+		self.controller.show_frame(StartPage)
+
 	
 	def update_passcode(self, key):
 		if not self.controller.enter:
@@ -614,7 +620,6 @@ class PasswordCheck(tk.Frame):
 
 class DeveloperMode(tk.Frame):
 	def __init__(self, parent, controller: tkinterApp):
-
 		tk.Frame.__init__(self, parent)
 		self.controller = controller
 		self.controller.check_beacons_range = False
@@ -625,21 +630,36 @@ class DeveloperMode(tk.Frame):
 		print("YESSS")
 		if(self.controller.check_beacons_range):
 			self.check_frame = Frame(self)
-			self.controller.ck_bool = []
-			self.controller.ck_button= []
-			for beacons_index in range(len(self.controller.beacons_list)):
-				beacon_id = "Beacon #" + str(beacons_index)
-				ck_val = BooleanVar()
-				self.controller.ck_bool.append(ck_val)
-				ck = ttk.Checkbutton(master=self.check_frame,text=beacon_id, variable=self.controller.ck_bool[beacons_index])
-				ck.config(state=DISABLED)
-				ck.pack(padx=5, pady=5)
-				self.controller.ck_button.append(ck)
-			self.controller.ck_bool[0].set(TRUE)
-			self.controller.ck_button[0].invoke()
-			self.controller.ck_bool[1].set(TRUE)
-			self.controller.ck_button[1].invoke()
+			self.controller.ck_bool_dict = {}
+			self.controller.ck_button_dict = {}
+			beacons_keys = list(EMITTER_LOC_DICT.keys())
+			row_num = 0
+			col_num = 0
+			self.check_frame.grid_rowconfigure(0, weight = 1)
+			self.check_frame.grid_columnconfigure(0, weight = 1)
+			for beacons_index in range(int(len(beacons_keys))):
+				beacon_id = "Beacon #" + str(beacons_keys[beacons_index])
+				ck_val = tk.IntVar()
+				self.controller.ck_bool_dict[beacon_id]= ck_val
+				#ck_val.set(0)
+				ck = ttk.Checkbutton(master=self.check_frame,text=beacon_id, onvalue = 1, offvalue = 0, variable=self.controller.ck_bool_dict[beacon_id])
+				ck.grid(row=row_num, column=col_num, padx=5, pady=5)
+				#ck_bool_dict[beacon_id].set(TRUE)
+				col_num += 1
+				if col_num > 3:
+					col_num = 0
+					row_num += 1
+				self.controller.ck_button_dict[beacon_id] = ck
+				#ck.invoke()
+				 #ck.invoke()
 			self.check_frame.pack()
+			for beacon_key in beacons_keys:
+				if beacon_key in self.controller.beaconManager.beacons:
+					self.controller.ck_bool_dict[beacon_key].set(1)
+					print("true")
+					ck_true =self.controller.ck_button_dict[beacon_key].invoke()
+					ck_true.config(DISABLED)
+
 	
 	def home(self):
 		self.controller.enter = False
