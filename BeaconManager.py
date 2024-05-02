@@ -116,7 +116,11 @@ class BeaconManager:
             
             
             if not beacon_addr in self.beacons.keys(): print("***************New Beacon***************!") 
-            self.beacons[beacon_addr] = (beacon,beacon_rssi)
+            if beacon_addr in self.beacons.keys():
+                 lastIdx = self.beacons[beacon_addr][2]
+                 self.beacons[beacon_addr] = (beacon,beacon_rssi,lastIdx+1)
+            else:
+                self.beacons[beacon_addr] = (beacon,beacon_rssi,0)
 
             # #If number of unqiue beacons is less than 3 and the adress doesnt already exist in unqie beacons
             if self.numUnique < BeaconManager.MAX_UNIQUE and not beacon_addr in  self.uniqueBeacons.keys():

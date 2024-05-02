@@ -134,7 +134,6 @@ class tkinterApp(tk.Tk):
 		self.json_file_dict: dict = json.load(open("services.json"))
 		self.beacons_dict: dict = json.load(open("node.json"))
 		self.service_array = list(self.json_file_dict["service_group"][0].keys())
-		self.beacons_list = list(self.beacons_dict["beacons"])
 		self.dest_list = list(self.beacons_dict["destinations"])
         #print(self.dest_list)
 		all_services = []
@@ -701,15 +700,7 @@ class DeveloperMode(tk.Frame):
 		self.controller.check_beacons_range = False
 		back_butt = ttk.Button(self, text= "Home", command = self.home).pack()
 		self.check_frame = Frame(self)
-	
-	def close(self):
-		sharedData.closing = True
-		self.mpu_thread.join()
-		self.localization_thread.join()
-		self.update_beacons_thread.close()
-		if self.navigation_thread != None:
-			self.navigation_thread.join()
-			self.manager.close()
+
 	def check_beacons(self):
 		print("YESSS")
 		if(self.controller.check_beacons_range):
@@ -722,7 +713,7 @@ class DeveloperMode(tk.Frame):
 			self.check_frame.grid_rowconfigure(0, weight = 1)
 			self.check_frame.grid_columnconfigure(0, weight = 1)
 			for beacons_index in range(int(len(beacons_keys))):
-				beacon_id = "Beacon #" + str(beacons_keys[beacons_index])
+				beacon_id = str(beacons_keys[beacons_index])
 				ck_val = tk.IntVar()
 				self.controller.ck_bool_dict[beacon_id]= ck_val
 				#ck_val.set(0)
@@ -734,22 +725,29 @@ class DeveloperMode(tk.Frame):
 					col_num = 0
 					row_num += 1
 				self.controller.ck_button_dict[beacon_id] = ck
-				#ck.invoke()
-				 #ck.invoke()
 			self.check_frame.pack()
 			for beacon_key in beacons_keys:
+				print(self.controller.beaconManager.beacons.keys())
 				if beacon_key in self.controller.beaconManager.beacons:
 					self.controller.ck_bool_dict[beacon_key].set(1)
 					print("true")
-					ck_true =self.controller.ck_button_dict[beacon_key].invoke()
-					ck_true.config(DISABLED)
-
+					ck_true = self.controller.ck_button_dict[beacon_key]
+					ck_true.invoke()
 	
 	def home(self):
 		self.controller.enter = False
 		self.controller.check_beacons_range = False
 		self.check_frame.destroy()
 		self.controller.show_frame(StartPage)
+	
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 
 
 # Driver Code
