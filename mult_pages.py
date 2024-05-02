@@ -417,8 +417,10 @@ class NavigationPage(tk.Frame):
 
 		await self.repaint(start, goal, user_node, end_location)
 			
-
-
+	def get_direction_angle(self, yaw):
+		direction_angle = (yaw * 180 / 3.1415926535 + 360) % 360
+		return direction_angle
+	
 	def reset_service(self):
 		self.controller.selected = False
 		self.controller.show_frame(ServicesSearch)
@@ -460,24 +462,35 @@ class NavigationPage(tk.Frame):
         # nearest_node = self.bfs.find_nearest_node_feet()
         # nearest_node_location = self.bfs.nodes[nearest_node]["location"]
         # floor = nearest_node_location[2]
+		orientation = [0,0,0]
+		user_location = (2,-2,0)
+		counter = 0
 
-		self.draw_path(before_stairs, after_stairs)
 		while True:
+
+			user_location = (user_location[0]-1,user_location[1]+1,user_location[2])
+			self.draw_path(before_stairs, after_stairs)
 			dest_id = "Third Floot Bathroom_a" ##stub data
 			
 			#GET USER ORIENTATION FROM IMU (SHARED DATA)
-				#orientation = sharedData.get_orientation()
+			#orientation = sharedData.get_orientation()
 			
 			#GET DIRECTION OF MOVEMENT FROM IMU (INCOMPLETE RIGHT NOW)
 
 			#GET USER LOCATION FROM NAVIGATION (SHARED DATA)
 			#user_location = sharedData.get_estimated_location()
-			user_location = [0,0,0]
+
+			
+			img_floor = Image.open("IconCircle.png")
+			img = img_floor.resize((25,25), Image.Resampling.LANCZOS).rotate(self.get_direction_angle(orientation[2]))
+			img_tk = ImageTk.PhotoImage(img)
+			self.screen.create_image(grid2Pixel(user_location[0:2],user_location[2])[0], grid2Pixel(user_location[0:2],user_location[2])[1], image= img_tk, anchor= "nw")
+			
 
 
 			#CONVERT USER POSITION TO GRID SPACE
 			user_location_grid_tra = (self.controller.bfs.feet_to_node_units(user_location[0], user_location[1])[0], self.controller.bfs.feet_to_node_units(user_location[0], user_location[1])[1], user_location[2])
-			user_location_grid_bfs = user_grid_location
+			user_location_grid_bfs = (-1,-1,0)
 
 			#POSSIBLE LATER
 				#DIRECTION OF MOVEMENT FROM IMU AND COMPARE IT TO DIRECTION OF MOVEMENT OF NAVIGATION
@@ -504,7 +517,8 @@ class NavigationPage(tk.Frame):
 			if user_location_grid_bfs != user_location_grid_tra:
 				#USERPOSITION = CURRENT USER POSITION
 				b = FALSE
-				user_grid_location = user_location_grid_tra
+				#user_grid_location = user_location_grid_tra
+				user_grid_location = user_location
 				#IF BEFORE STAIRS IS NOT EMPTY
 				if len(before_stairs) > 0:
 					#PATH OF NODES = BEFORE STAIRS
@@ -516,15 +530,17 @@ class NavigationPage(tk.Frame):
 				#LOOP THROUGH PATH OF NODES AND CHECK AGAINST POSITIONS
 				
 				found_node_in_path = False
+				removedCount = 0
 				for i in range(len(node_path)):
 					#IF CURRENT USER POSITION EXISTS IN PATH
-					if user_grid_location == node_path[i]:
+					if (not found_node_in_path) and (user_grid_location == node_path[i - removedCount][0]):
 						#REMOVE THE NODE FROM THE PATH (START AND GOAL VARIABLES LEN - 1)
-						for j in range(0,i+1,1):
+						for j in range(0,len(node_path) - i,1):
 							if b:
 								before_stairs.pop()
 							else:
 								after_stairs.pop()
+							removedCount = removedCount + 1
 						found_node_in_path = True
 				
 				#ELSE IF CURRENT USER POSITION EXISTS IN LIST OF ALL NODES IN THE CURRENT FLOOR
@@ -536,8 +552,8 @@ class NavigationPage(tk.Frame):
 							else:
 								after_stairs.insert(0, [self.controller.bfs.nodes[i]["location"],after_stairs[0][0]])
 
-                    #ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
-                    
+            	#ADD NODE TO THE PATH WITH (LEN(GOAL) - 1) INTO LEN(START) AND NEW NODE INTO LEN(GOAL)
+                
                 #THEN, REDRAW
             
 
