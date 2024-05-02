@@ -49,7 +49,7 @@ def localization(beaconManager):
     
     i = 0
     time.sleep(5)
-    while (True):
+    while (not sharedData.closing):
         time.sleep(.1)
         try:
             i+=1

@@ -95,6 +95,10 @@ class BeaconManager:
         # foundBeaocons = self.scanner.discovered_devices
         print("Starting update beacons*******************")
         async for beacon,ad_packet in self.scanner.advertisement_data():
+
+            if sharedData.closing:
+                return
+            
             print("updating beacons*******************")
             await asyncio.sleep(.1)
             if self.closing: return

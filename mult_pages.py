@@ -9,11 +9,11 @@ import json, time, threading, asyncio
 from BFS import BFS
 from MPU.run_mpu import MpuClass
 from globals import *
+from globals import SIMULATION,sharedData
 from BeaconManager import BeaconManager
 if not SIMULATION: from MPU.run_mpu import runMpu
 from globals import EMITTER_LOC_DICT
 from tra_localization import tra_localization
-from globals import *
 
 from BeaconManager import BeaconManager
 from MPU.run_mpu import MpuClass
@@ -24,7 +24,9 @@ FONT_SERVICES = "Calibri 15"
 
 class App:
 	async def exec(self):
-		self.window = tkinterApp(asyncio.get_event_loop())
+		loop = asyncio.get_event_loop()
+		self.window = tkinterApp(loop)
+		
 		await self.window.frames[StartPage].start_page_layout()
 		print("Broke the while loop")
 		page_num = 6
@@ -38,7 +40,7 @@ class App:
 			elif(self.window.flags[2] and not page_num == 2):
 				page_num = 2
 				self.window.show_frame(NavigationPage)
-				self.window.frames[NavigationPage].paint()#aabsolutely disgusting
+				await self.window.frames[NavigationPage].paint()#absolutely disgusting
 			elif(self.window.flags[3] and not page_num == 3):				#disgusting
 				page_num = 3
 				self.window.show_frame(PasswordCheck)
@@ -50,11 +52,21 @@ class App:
 				self.window.check_beacons_range = False
 
 			self.window.update()
+			await asyncio.sleep(.1)
+			
 		#what's the course password?
 		#Yeah, that's right. It works
   
 		#initialize_task = asyncio.create_task(self.window.beaconManager.initialize_scanning())
 		#await initialize_task
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 
 def flatten(list_of_list):
     if isinstance(list_of_list, list):
@@ -85,14 +97,15 @@ def grid2Pixel(inp,floor):
 class tkinterApp(tk.Tk):
 	def __init__(self, loop): 
 		tk.Tk.__init__(self)
-		print("HEREEEE")
 		#init classes
 		self.loop = loop
 		self.check_beacons_range = False
 		self.flags = [True, False, False, False, False]
 
 		self.beaconManager = BeaconManager()
-		self.loop.create_task(self.beaconManager.update_beacons())
+		self.update_beacons_thread =  self.loop.create_task(self.beaconManager.update_beacons())
+		# self.loop.run_until_complete(self.beaconManager.update_beacons())
+		# self.loop.create_task(self.beaconManager.update_beacons())
 		self.mpu = MpuClass()
 		self.bfs = BFS()
 		self.navigation_thread = None
@@ -142,7 +155,7 @@ class tkinterApp(tk.Tk):
 		# iterating through a tuple consisting
 		# of the different page layouts
 		for F in (StartPage, ServicesSearch, NavigationPage, PasswordCheck, DeveloperMode):
-			frame = F(container, self)
+			frame = F(container, self, self.loop)
 
 			# initializing frame of that object from
 			# startpage, page1, page2 respectively with 
@@ -158,7 +171,14 @@ class tkinterApp(tk.Tk):
 		# 	await asyncio.sleep(.1)
 			
 
-
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 
 	# to display the current frame passed as
 	# parameter
@@ -187,7 +207,7 @@ class tkinterApp(tk.Tk):
 			
 			# self.initialize_task_thread.start()
 			self.mpu_tread.start()
-
+			
 			print("started threads")
 		# 	self.started = Tru
 		# 	self.localization_thread = asyncio.create_task(localization())
@@ -201,8 +221,10 @@ class tkinterApp(tk.Tk):
 # first window frame startpage
 
 class StartPage(tk.Frame):
-	def __init__(self, parent, controller: tkinterApp): 
+	def __init__(self, parent, controller: tkinterApp, loop): 
 		self.controller = controller
+		self.loop = loop
+		asyncio.set_event_loop(self.loop)
 		
 		tk.Frame.__init__(self, parent)
 		#self.start_page_layout()
@@ -231,11 +253,21 @@ class StartPage(tk.Frame):
 			print("Here")
 			self.update()
 			await asyncio.sleep(.1)
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 		
 class ServicesSearch(tk.Frame):
 	
-	def __init__(self, parent, controller: tkinterApp):
+	def __init__(self, parent, controller: tkinterApp, loop):
 		self.controller = controller
+		self.loop = loop
+		asyncio.set_event_loop(self.loop)
 		tk.Frame.__init__(self, parent)
 		self.services_lb = tk.Listbox(self, height = len(controller.service_array)+1, width = 10, font=FONT, name='service_list')
 		# Include an "all services" category with all reachable services
@@ -260,7 +292,14 @@ class ServicesSearch(tk.Frame):
 		R2 = Radiobutton(frame, text="Elevator", variable=self.controller.stairs, value=False).pack()
 		self.controller.sel_service = "All services"
 
-		
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 
 	def onselect(self, evt: Event):
 		if not evt.widget.curselection():
@@ -319,7 +358,10 @@ class ServicesSearch(tk.Frame):
 
 # third window frame page2
 class NavigationPage(tk.Frame): 
-	def __init__(self, parent, controller: tkinterApp):
+	def __init__(self, parent, controller: tkinterApp, loop):
+		self.loop = loop
+
+		asyncio.set_event_loop(self.loop)
 		self.controller = controller
 		tk.Frame.__init__(self, parent)
 		mess = "Goal: "+ str(controller.sel_room.get())
@@ -334,9 +376,16 @@ class NavigationPage(tk.Frame):
 		self.screen.pack(anchor="center")
 
 
-		
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()	
 
-	def paint(self):
+	async def paint(self):
 		# Code for drawing
 		dest_id = "Basement Bathroom"
 		preference = "stairs"
@@ -366,7 +415,7 @@ class NavigationPage(tk.Frame):
 				goal.append(nodePath[i+1])
 			locations[nodePath[i]] = self.controller.bfs.nodes[nodePath[i]]["location"]
 
-		self.repaint(start, goal, user_node, end_location)
+		await self.repaint(start, goal, user_node, end_location)
 			
 
 
@@ -374,7 +423,7 @@ class NavigationPage(tk.Frame):
 		self.controller.selected = False
 		self.controller.show_frame(ServicesSearch)
 	
-	def repaint(self, start, goal, user_position, end):
+	async def repaint(self, start, goal, user_position, end):
     
 		before_stairs = []
 		after_stairs = []
@@ -501,7 +550,7 @@ class NavigationPage(tk.Frame):
             #hey
 
 			self.update()
-			time.sleep(2)
+			await asyncio.sleep(1)
 
 	def draw_path(self, before_stairs, after_stairs):
 		#screen = Canvas(page, width= 600, height=550, background="black")
@@ -549,7 +598,9 @@ class NavigationPage(tk.Frame):
 		#screen.create_line(line_start[0],line_start[1],line_stop[0],line_stop[1], fill="green", width = 3)
 
 class PasswordCheck(tk.Frame):
-	def __init__(self, parent, controller: tkinterApp):
+	def __init__(self, parent, controller: tkinterApp, loop):
+		self.loop = loop
+		asyncio.set_event_loop(self.loop)
 		tk.Frame.__init__(self, parent)
 		self.controller = controller
 		passcode_frame = Frame(self, bg="white")
@@ -594,7 +645,14 @@ class PasswordCheck(tk.Frame):
 		self.clear_passcode()
 		self.controller.show_frame(StartPage)
 
-	
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 	def update_passcode(self, key):
 		if not self.controller.enter:
 			self.right_wrong_label.configure(text="")
@@ -619,13 +677,23 @@ class PasswordCheck(tk.Frame):
 		self.passcode.set("")
 
 class DeveloperMode(tk.Frame):
-	def __init__(self, parent, controller: tkinterApp):
+	def __init__(self, parent, controller: tkinterApp, loop):
 		tk.Frame.__init__(self, parent)
+		self.loop = loop
+		asyncio.set_event_loop(self.loop)
 		self.controller = controller
 		self.controller.check_beacons_range = False
 		back_butt = ttk.Button(self, text= "Home", command = self.home).pack()
 		self.check_frame = Frame(self)
-
+	
+	def close(self):
+		sharedData.closing = True
+		self.mpu_thread.join()
+		self.localization_thread.join()
+		self.update_beacons_thread.close()
+		if self.navigation_thread != None:
+			self.navigation_thread.join()
+			self.manager.close()
 	def check_beacons(self):
 		print("YESSS")
 		if(self.controller.check_beacons_range):
