@@ -1,10 +1,10 @@
 ## Dependencies
-easydict
-tkinter
-ttkbootstrap
-PIL
-smbus
-asyncio
+easydict  
+tkinter  
+ttkbootstrap  
+PIL  
+smbus  
+asyncio  
 bleak
 
 
