@@ -11,35 +11,14 @@
                     "5" : ["Fifth Floor Bathroom"]
                 }
             ],
-            "Classroom" : [
+            "Collection" : [
                 {
-                    "0" : null,
-                    "1" : ["Meeting Room 110", "Classroom 109"],
-                    "2" : ["Meeting Room 223"],
-                    "3" : null,
-                    "4" : ["Study Room 420"],
-                    "5" : ["Study Room 520", "Polish Room"]
-                }
-            ],
-            "Office" : [
-                {
-                    "0" : ["Marketing Comm. and Digital Engagement", "Administrative Operations"],
-                    "1" : ["Science & Engineering Info Center", "Amanda McCormick, Science Librarian", "Todd Nibble, Facilities & Operation Supervisor", "Jill M. Hackenberg, Associate Librarian", "Sam Kim, GIS and Geospatial Librarian", "Erin Rowley, Engineering Librarian"],
-                    "2" : ["Jake Carlson, Ass. University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Donna Berryman, Ass. University for Research", "Karlen Chase, Head of Inst. Repository Services"],
+                    "0" : ["Map Collection"],
+                    "1" : ["Government Document", "SEIC Reference Collection"],
+                    "2" : ["Current Periodicals", "Graphic Novels", "Indigenous Students Collection", "International Leisure Reading", "East Asia Ref"],
                     "3" : null,
                     "4" : null,
                     "5" : null
-                }
-                
-            ],
-            "Stairs" : [
-                {
-                    "0" : ["Basement Stairs"],
-                    "1" : ["First Floor Stairs"],
-                    "2" : ["Second Floor Stairs"],
-                    "3" : ["Third Floor Stairs"],
-                    "4" : ["Fourth Floor Stairs"],
-                    "5" : ["Fifth Floor Stairs"]
                 }
             ],
             "Elevator" : [
@@ -52,14 +31,34 @@
                     "5" : ["Fifth Floor Elevator"]
                 }
             ],
-            "Collection" : [
+            "Office" : [
                 {
-                    "0" : ["Map Collection"],
-                    "1" : ["Government Document", "SEIC Reference Collection"],
-                    "2" : ["Current Periodicals", "Graphic Novels", "Indigenous Students Collection", "International Leisure Reading", "East Asia Ref"],
+                    "0" : ["Marketing Comm. and Digital Engagement", "Administrative Operations"],
+                    "1" : ["Science & Engineering Info Center", "Amanda McCormick, Science Librarian", "Todd Nibble, Facilities & Operation Supervisor", "Jill M. Hackenberg, Associate Librarian", "Sam Kim, GIS and Geospatial Librarian", "Erin Rowley, Engineering Librarian"],
+                    "2" : ["Jake Carlson, Ass. University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Donna Berryman, Ass. University for Research", "Karlen Chase, Head of Inst. Repository Services"],
                     "3" : null,
                     "4" : null,
                     "5" : null
+                }
+            ],
+            "Rooms" : [
+                {
+                    "0" : null,
+                    "1" : ["Meeting Room 110", "Classroom 109"],
+                    "2" : ["Meeting Room 223"],
+                    "3" : null,
+                    "4" : ["Study Room 420"],
+                    "5" : ["Study Room 520", "Polish Room"]
+                }
+            ],
+            "Stairs" : [
+                {
+                    "0" : ["Basement Stairs"],
+                    "1" : ["First Floor Stairs"],
+                    "2" : ["Second Floor Stairs"],
+                    "3" : ["Third Floor Stairs"],
+                    "4" : ["Fourth Floor Stairs"],
+                    "5" : ["Fifth Floor Stairs"]
                 }
             ],
             "Other" : [
@@ -68,8 +67,8 @@
                     "1" : ["Outside Entrance/Exit"],
                     "2" : ["Main Inside Entrance", "Level UP", "Scanners", "Library Service Desk"],
                     "3" : null,
-                    "4" : ["Study Room 420"],
-                    "5" : ["Study Room 520", "Polish Room"]
+                    "4" : null,
+                    "5" : null
                 }
             ]
         }

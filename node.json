@@ -134,15 +134,6 @@
     {"node_id": 32, "location_x": 8, "location_y": 23, "location_z": 5, "connections":[78, 79, 49, 37, 100], "node_type": "stairs"}
   ],
   
-  "beacons":[
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5},
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5},
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5},
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5},
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5},
-    {"beacon_id": 200, "location_x": -13.5, "location_y": 13.5, "location_z": 8.5}
-  ],
-  
   "destinations":[
       {"dest_id": "Map Collection", "location_x": 1, "location_y": -2, "location_z": 0, "connections":[1]},
       {"dest_id": "Basement Bathroom", "location_x": 14, "location_y": -8, "location_z": 0, "connections":[5, 4]},
