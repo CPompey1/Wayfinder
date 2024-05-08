@@ -19,16 +19,19 @@ And if I catch you using github upload I will find you, and I will crucify you a
 
 ```
     cd ~/workspace/
-    //if not already cloned
+    #if not already cloned
+    
     git clone https://github.com/CPompey1/Wayfinder
     cd Wayfinder
-    //If code is not up to date
+    
+    #If code is not up to date
     git checkout main
     git pull
 
-    //Assumes virtual environment is already created and initialized with packages in home directory
+    #Assumes virtual environment is already created and initialized with packages in home directory
     cp ~/.env .
-    //might be in workspace: cp ~/workspace/.env .
+    
+    #might be in workspace: cp ~/workspace/.env .
     source ./env/bin/activate
     python3 mult_pages.py
     
