@@ -94,8 +94,14 @@ class BeaconManager:
         
         # foundBeaocons = self.scanner.discovered_devices
         print("Starting update beacons*******************")
-        async for beacon,ad_packet in self.scanner.advertisement_data():
-
+        while not sharedData.closing:
+            
+            discoveredDevices = self.scanner.discovered_devices_and_advertisement_data
+            for key in discoveredDevices.keys():
+                beacon, ad_packet = discoveredDevices[key]
+                await self.handle_beacon(beacon, ad_packet)
+            await asyncio.sleep(.200)
+    async def handle_beacon(self,beacon,ad_packet):
             if sharedData.closing:
                 return
             
@@ -108,17 +114,17 @@ class BeaconManager:
             beacon_addr = beacon.address
 
             beacon_rssi = beacon.rssi
-            if beacon_addr == None: continue
+            if beacon_addr == None: return 
 
             # #filter for only beacons in the emitter location dict
             if not beacon_addr in EMITTER_LOC_DICT.keys(): 
-                continue
+                return
             
             
             if not beacon_addr in self.beacons.keys(): print("***************New Beacon***************!") 
             if beacon_addr in self.beacons.keys():
-                 lastIdx = self.beacons[beacon_addr][2]
-                 self.beacons[beacon_addr] = (beacon,beacon_rssi,lastIdx+1)
+                    lastIdx = self.beacons[beacon_addr][2]
+                    self.beacons[beacon_addr] = (beacon,beacon_rssi,lastIdx+1)
             else:
                 self.beacons[beacon_addr] = (beacon,beacon_rssi,0)
 
@@ -170,7 +176,7 @@ class BeaconManager:
 
                             
 
-       
+        
 
     async def batch_ready(self):
         pass

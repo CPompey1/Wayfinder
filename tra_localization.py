@@ -26,21 +26,24 @@ closestBeacons =  None
 
 async def main():
     global beaconManager
-
+    sharedData.closing = False
     #overrite with empty bytes
     with open('locationData','w') as file:
         file.write(f'')
 
     beaconManager = BeaconManager()
     mpu = MpuClass()
-    # a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
-    a = asyncio.create_task(localization())
-    b = asyncio.create_task(beaconManager.initialize_scanning())
-    c = asyncio.create_task(mpu.sim_mpu())
+    # loop = asyncio.get_event_loop()
+    localization_thread = threading.Thread(target=localization,args=(beaconManager,))
+    localization_thread.start()
+    # a = await asyncio.gather(*[beaconManager.update_beacons(),localization(beaconManager)])
+    # a = asyncio.create_task(localization(beaconManager))
+    b = asyncio.create_task(beaconManager.update_beacons())
+    # c = asyncio.create_task(mpu.sim_mpu())
     
-    await a
+    # await a
     await b
-    await c
+    # await c
 
     # print(a)
 
@@ -56,11 +59,10 @@ def localization(beaconManager):
 
             print("localization")
             if beaconManager.closest_full():
-                closestBeacons = beaconManager.get_closest()
+                # closestBeacons = beaconManager.get_closest()
                 print("********************************FULL*************************************************")
-                
-                print(f"Beacons: {beaconManager.get_beacons()}")
-                print(f"Closest Beacons: {beaconManager.get_closest()}")    
+                # print(f"Beacons: {beaconManager.get_beacons()}")
+                # print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
                 location = tra_localization(closestBeacons,EMITTER_LOC_DICT)
                 if len(location) ==0: continue
@@ -73,8 +75,8 @@ def localization(beaconManager):
                 #print("not full\n")
             
             
-            with open('locationData','a') as file:
-                    file.write(f'Iteration: {i}\n')
+            # with open('locationData','a') as file:
+            #         file.write(f'Iteration: {i}\n')
 
         except KeyboardInterrupt:
             print("CLOSING")
@@ -124,4 +126,4 @@ def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
 
     return estimated_location
 
-# asyncio.run(main())
+asyncio.run(main())
