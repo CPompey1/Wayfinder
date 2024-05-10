@@ -52,6 +52,7 @@ def localization(beaconManager):
     
     i = 0
     time.sleep(5)
+    start_time = time.time()
     while (not sharedData.closing):
         time.sleep(.1)
         try:
@@ -59,8 +60,12 @@ def localization(beaconManager):
 
             print("localization")
             if beaconManager.closest_full():
-                # closestBeacons = beaconManager.get_closest()
+                closestBeacons = beaconManager.get_closest()
                 print("********************************FULL*************************************************")
+                end_time = time.time()
+                # print(f"*********Took {end_time-start_time} seconds *********")
+                with open('locationData','a') as file:
+                    file.write(f"*********Took {end_time-start_time} seconds *********\n")
                 # print(f"Beacons: {beaconManager.get_beacons()}")
                 # print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
@@ -70,6 +75,7 @@ def localization(beaconManager):
                     file.write(f'Estimated Location: {location}\n')
                 sharedData.estimated_location = location
                 beaconManager.clear_closest()
+                start_time = time.time()
             else:
                 pass
                 #print("not full\n")

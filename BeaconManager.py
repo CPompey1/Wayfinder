@@ -96,7 +96,7 @@ class BeaconManager:
         print("Starting update beacons*******************")
         while not sharedData.closing:
             
-            discoveredDevices = self.scanner.discovered_devices_and_advertisement_data
+            discoveredDevices = self.scanner.discovered_devices_and_advertisement_data.copy()
             for key in discoveredDevices.keys():
                 beacon, ad_packet = discoveredDevices[key]
                 await self.handle_beacon(beacon, ad_packet)
