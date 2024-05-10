@@ -26,21 +26,24 @@ closestBeacons =  None
 
 async def main():
     global beaconManager
-
+    sharedData.closing = False
     #overrite with empty bytes
     with open('locationData','w') as file:
         file.write(f'')
 
     beaconManager = BeaconManager()
     mpu = MpuClass()
-    # a = await asyncio.gather(*[beaconManager.initialize_scanning(),localization()])
-    a = asyncio.create_task(localization())
-    b = asyncio.create_task(beaconManager.initialize_scanning())
-    c = asyncio.create_task(mpu.sim_mpu())
+    # loop = asyncio.get_event_loop()
+    localization_thread = threading.Thread(target=localization,args=(beaconManager,))
+    localization_thread.start()
+    # a = await asyncio.gather(*[beaconManager.update_beacons(),localization(beaconManager)])
+    # a = asyncio.create_task(localization(beaconManager))
+    b = asyncio.create_task(beaconManager.update_beacons())
+    # c = asyncio.create_task(mpu.sim_mpu())
     
-    await a
+    # await a
     await b
-    await c
+    # await c
 
     # print(a)
 
@@ -48,33 +51,37 @@ async def main():
 def localization(beaconManager):
     
     i = 0
-    time.sleep(5)
+    time.sleep(1)
+    start_time = time.time()
     while (not sharedData.closing):
-        time.sleep(.1)
+        time.sleep(.01)
         try:
-            i+=1
-
-            print("localization")
             if beaconManager.closest_full():
                 closestBeacons = beaconManager.get_closest()
-                print("********************************FULL*************************************************")
-                
-                print(f"Beacons: {beaconManager.get_beacons()}")
-                print(f"Closest Beacons: {beaconManager.get_closest()}")    
+                #print("********************************FULL*************************************************")
+                end_time = time.time()
+                print(f"*********Took {end_time-start_time} seconds *********")
+                with open('locationData','a') as file:
+                    file.write(f"*********Took {end_time-start_time} seconds *********\n")
+                # print(f"Beacons: {beaconManager.get_beacons()}")
+                # print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
+                
                 location = tra_localization(closestBeacons,EMITTER_LOC_DICT)
                 if len(location) ==0: continue
+                
+                sharedData.set_estimated_location(location)
                 with open('locationData','a') as file:
                     file.write(f'Estimated Location: {location}\n')
-                sharedData.estimated_location = location
                 beaconManager.clear_closest()
+                start_time = time.time()
             else:
                 pass
                 #print("not full\n")
             
             
-            with open('locationData','a') as file:
-                    file.write(f'Iteration: {i}\n')
+            # with open('locationData','a') as file:
+            #         file.write(f'Iteration: {i}\n')
 
         except KeyboardInterrupt:
             print("CLOSING")
@@ -124,4 +131,4 @@ def tra_localization(cloest3_beacon_list, emitter_location_dic) -> list[float]:
 
     return estimated_location
 
-# asyncio.run(main())
+#asyncio.run(main())

@@ -481,31 +481,15 @@ class MPU9255:
 		with open(filePath, 'w') as outFile:
 			json.dump(calibVals, outFile, cls =NumpyArrayEncoder)
 
-	def loadCalibDataFromFile(self, filePath):
-		""" Save the caliberation vaslues
-
-		Parameters
-		----------
-		filePath : str
-			Make sure the file exists before giving the input. The path 
-			has to be absolute.
-			Otherwise it doesn't save the values.
+	def loadCalibDataFromFile(self):
+		data = []
+		with open("Calibration.txt", "r") as f:
+			for line in f:
+				data = line.split(",")
+			f.close()
+		self.Mags = np.array([float(data[0]), float(data[1]), float(data[2])])
+		self.MagBias = np.array([float(data[3]), float(data[4]), float(data[5])])
 		
-		"""
-
-		#check if file path exists
-		if not os.path.exists(filePath):
-			print ("Please provide the correct path")
-
-		with open(filePath, 'r') as jsonFile:
-			calibVals = json.load(jsonFile)
-			self.Accels = np.asarray(calibVals['Accels'])
-			self.AccelBias = np.asarray(calibVals['AccelBias'])
-			self.GyroBias = np.asarray(calibVals['GyroBias'])
-			self.Mags = np.asarray(calibVals['Mags'])
-			self.MagBias = np.asarray(calibVals['MagBias'])
-			if 'Magtransform' in calibVals.keys():
-				self.Magtransform = np.asarray(calibVals['Magtransform'])
 
 	def computeOrientation(self):
 		""" Computes roll, pitch and yaw
