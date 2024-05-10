@@ -152,12 +152,16 @@ class SharedData:
         self.orientation = None
     def get_orientation(self):
         with self.lock:
-            out = self.estimated_location
+            out = self.orientation
         return out
     def get_estimated_location(self):
         with self.lock:
-            out = self.orientation
+            out = self.estimated_location
         return out
+
+    def set_estimated_location(self,location):
+        with self.lock:
+            self.estimated_location = location
     def start_navigation(self):
         with self.lock:
             self.navigation_started = True

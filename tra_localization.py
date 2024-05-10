@@ -69,11 +69,13 @@ def localization(beaconManager):
                 # print(f"Beacons: {beaconManager.get_beacons()}")
                 # print(f"Closest Beacons: {beaconManager.get_closest()}")    
                 print("Entering localization")
+                
                 location = tra_localization(closestBeacons,EMITTER_LOC_DICT)
                 if len(location) ==0: continue
+                
+                sharedData.set_estimated_location(location)
                 with open('locationData','a') as file:
                     file.write(f'Estimated Location: {location}\n')
-                sharedData.estimated_location = location
                 beaconManager.clear_closest()
                 start_time = time.time()
             else:
