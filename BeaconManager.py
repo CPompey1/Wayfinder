@@ -97,9 +97,14 @@ class BeaconManager:
         while not sharedData.closing:
             
             discoveredDevices = self.scanner.discovered_devices_and_advertisement_data.copy()
+            start_time = time.time()
             for key in discoveredDevices.keys():
                 beacon, ad_packet = discoveredDevices[key]
                 await self.handle_beacon(beacon, ad_packet)
+            
+            stop_time = time.time()
+            with open('locationData','a') as file:
+                file.write(f'Time to search dict: {stop_time - start_time}\n')
             await asyncio.sleep(.200)
     async def handle_beacon(self,beacon,ad_packet):
             if sharedData.closing:
