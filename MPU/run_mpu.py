@@ -89,7 +89,7 @@ class MpuClass:
         preserve_yaw = 0
         first_time_flag = 1
         current_direction = 0
-        while True:
+        while True and not sharedData.closing:
             imu.readSensor()
             imu.computeOrientation()
             newTime = time.time()
@@ -112,6 +112,6 @@ class MpuClass:
             if(first_time_flag == 1):
                 first_time_flag = 0
                 
-            print(current_direction)
+            sharedData.set_orientation(current_direction)
             preserve_yaw = y
             time.sleep(0.01)

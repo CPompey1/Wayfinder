@@ -133,7 +133,9 @@ class SharedData:
         with self.lock:
             out = self.estimated_location
         return out
-
+    def set_orientation(self, ori):
+        with self.lock:
+            self.orientation = ori
     def set_estimated_location(self,location):
         with self.lock:
             self.estimated_location = location
