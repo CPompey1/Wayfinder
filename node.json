@@ -220,4 +220,4 @@
       {"dest_id": "Fifth Floor Stairs_c", "location_x": 13, "location_y": -2, "location_z": 5, "connections":[87, 85,  86, 59, 31, 115, 5, 49]},
       {"dest_id": "Fifth Floor Stairs_d", "location_x": 8, "location_y": 28, "location_z": 5, "connections":[78, 79, 32, 49, 37, 100]}
   ]
-  }
+}

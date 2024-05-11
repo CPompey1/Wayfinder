@@ -34,15 +34,15 @@ class App:
 		while True:
 			if(self.window.flags[0] and not page_num == 0):
 				page_num = 0
-				self.window.show_frame(StartPage)#disgusting
+				self.window.show_frame(StartPage)
 			elif(self.window.flags[1] and not page_num == 1):
 				page_num = 1
-				self.window.show_frame(ServicesSearch)#disgusting
+				self.window.show_frame(ServicesSearch)
 			elif(self.window.flags[2] and not page_num == 2):
 				page_num = 2
 				self.window.show_frame(NavigationPage)
-				await self.window.frames[NavigationPage].paint()#absolutely disgusting
-			elif(self.window.flags[3] and not page_num == 3):				#disgusting
+				await self.window.frames[NavigationPage].paint()
+			elif(self.window.flags[3] and not page_num == 3):
 				page_num = 3
 				self.window.show_frame(PasswordCheck)
 			elif(self.window.flags[4] and not page_num == 4):
@@ -334,70 +334,49 @@ class NavigationPage(tk.Frame):
 	async def paint(self):
 		#need to grab user destination and preference
 		dest_id = self.controller.sel_room.get()
-		print(self.controller.stairs.get())
 		preference = "stairs" if self.controller.stairs.get() else "elevator"
 		#get the user location from the navigation thread and convert to grid coordinates
-		user_location_feet = (50, -30, 2)
+		user_location_feet = (54, -12, 2)
 		user_node = self.controller.bfs.feet_to_node_units(user_location_feet[0], user_location_feet[1])
 		
 		#compute shortest path
-		end_location = self.controller.bfs.find_destination_by_id(dest_id, self.controller.bfs.endpoints)
+		end_location = self.controller.bfs.find_destination_by_id(dest_id, (user_node[0], user_node[1], user_location_feet[2]), self.controller.bfs.endpoints)
 		nodePath = self.controller.bfs.find_path(user_location_feet, dest_id, self.controller.bfs.nodes, self.controller.bfs.graph, self.controller.bfs.endpoints, preference)
 		locations = {}
 		
-		start = []
-		goal = []
+		list_of_paths = [[]]
+		stair_count = 0
 		#turn path into a list of start and end points for drawing
-		for i in range(len(nodePath)):
-			if i < len(nodePath) - 1:
-				start.append(nodePath[i])
-				goal.append(nodePath[i+1])
+		for i in range(len(nodePath) - 1):
+			if(self.controller.bfs.nodes[nodePath[i]]["location"][2] == self.controller.bfs.nodes[nodePath[i+1]]["location"][2]):
+				list_of_paths[stair_count].append([self.controller.bfs.nodes[nodePath[i]]["location"], self.controller.bfs.nodes[nodePath[i+1]]["location"]])
+			else:
+				list_of_paths.append([])
+				stair_count = stair_count + 1
 			locations[nodePath[i]] = self.controller.bfs.nodes[nodePath[i]]["location"]
 
+		list_of_paths[0].insert(0,[(user_node[0],user_node[1],user_location_feet[2]),list_of_paths[0][0][0]])
+
 		#continuously redraw the path with the given path information and user location
-		await self.repaint(start, goal, user_node, end_location)
+		await self.repaint(list_of_paths, user_node, end_location)
 	
 
-	async def repaint(self, start, goal, user_position, end):
+	async def repaint(self, list_of_paths, user_position, end):
 		
-		before_stairs = []
-		after_stairs = []
-		node_path = []
 		user_location = [50,-30,2]
+		stair_count = 0
 
-		#Separate start and goal into before stairs and after stairs
-		startingFloor = self.controller.bfs.nodes[start[0]]["location"][2]
-		twoFloors = False
-		for i in range(len(start)):
-			#if floors are different
-			if self.controller.bfs.nodes[start[i]]["location"][2] != self.controller.bfs.nodes[goal[i]]["location"][2] and not twoFloors:
-				before_stairs = after_stairs
-				after_stairs = []
-				#after_stairs.append(nodeId)
-				twoFloors = True
-			else:
-				after_stairs.append([self.controller.bfs.nodes[start[i]]["location"],self.controller.bfs.nodes[goal[i]]["location"]])
-
-		if len(after_stairs) != 0:
-			after_stairs.append([after_stairs[len(after_stairs) - 1][1],end])
-		else:
-			after_stairs.append([self.controller.bfs.nodes[goal[len(goal) - 1]]["location"],end])
-		if twoFloors:
-			if(len(before_stairs) > 0):
-				before_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), before_stairs[0][0]])
-		else:
-			after_stairs.insert(0,[(user_position[0], user_position[1], startingFloor), after_stairs[0][0]])
-
-		current_user_pos = (9,-5,2)
-		previous_user_pos = (9,-5,2)
+		current_user_pos = user_position
+		previous_user_pos = user_position
 		while True:
 			#get user position and orientation from navigation and mpu threads
 			orientation = sharedData.get_orientation()
 			user_location = sharedData.get_estimated_location()
 			#convert user position to a grid location
 			current_user_pos = (self.controller.bfs.feet_to_node_units(user_location[0], user_location[1])[0], self.controller.bfs.feet_to_node_units(user_location[0], user_location[1])[1], user_location[2])
+			#current_user_pos = (current_user_pos[0] - 1, current_user_pos[1] + 1, list_of_paths[stair_count][0][0][2] * 100)
 			#draw the BFS path for the current floor
-			self.draw_path(before_stairs, after_stairs)
+			self.draw_path(list_of_paths, stair_count)
 			
 			#draw the user position and orientation on top of the map and BFS path
 			img_floor = Image.open("IconCircle.png")
@@ -426,49 +405,35 @@ class NavigationPage(tk.Frame):
 				#|---|---|---|
 
 			if current_user_pos != previous_user_pos:
-				b = FALSE
-				#user_grid_location = user_location_grid_tra
-				previous_user_pos = current_user_pos
-				#Set search location to the current floor the user is on
-				if len(before_stairs) > 0:
-					node_path = before_stairs
-					b = TRUE
-				else:
-					node_path = after_stairs
 
-				#check to see if the user has reached the area of a node
+				previous_user_pos = current_user_pos
+
 				found_node_in_path = False
 				removedCount = 0
-				for i in range(len(node_path)):
+				for i in range(len(list_of_paths[stair_count])):
 					#if the current user position exists in the path, remove the node from the path
-					if (not found_node_in_path) and (abs(current_user_pos[0] - node_path[i - removedCount][0][0]) <= 1) and (abs(current_user_pos[1] - node_path[i - removedCount][0][1]) <= 1) and (current_user_pos[2] == node_path[i - removedCount][0][2]):
-						for j in range(0,len(node_path) - i,1):
-							if b:
-								before_stairs.pop()
-							else:
-								after_stairs.pop()
+					if (not found_node_in_path) and (abs(current_user_pos[0] - list_of_paths[stair_count][i - removedCount][1][0]) <= 1) and (abs(current_user_pos[1] - list_of_paths[stair_count][i - removedCount][1][1]) <= 1) and (round(current_user_pos[2]/100) == list_of_paths[stair_count][i - removedCount][1][2]):
+						for j in range(0,i+1,1):
+							list_of_paths[stair_count].pop()
 							removedCount = removedCount + 1
 						found_node_in_path = True
-				
+				if(len(list_of_paths[stair_count]) == 0):
+					stair_count = stair_count + 1
+					if(stair_count == len(list_of_paths)):
+						return
 				#if the current user position was not in the path, check to see if they reached another node and add it
 				if not found_node_in_path:
 					for i in self.controller.bfs.nodes:
 						if current_user_pos == self.controller.bfs.nodes[i]["location"]:
-							if b:
-								before_stairs.insert(0, [self.controller.bfs.nodes[i]["location"],before_stairs[0][0]])
-							else:
-								after_stairs.insert(0, [self.controller.bfs.nodes[i]["location"],after_stairs[0][0]])
+							list_of_paths[stair_count].insert(0, [self.controller.bfs.nodes[i]["location"],list_of_paths[stair_count][0][0]])
 
 			self.update()
 			await asyncio.sleep(1)
 
 
-	def draw_path(self, before_stairs, after_stairs):
+	def draw_path(self, list_of_paths, stair_count):
 		#clear the screen by redrawing thr background image
-		if(len(before_stairs) != 0):
-			img_floor = Image.open("flr" + str(before_stairs[0][0][2]) + "_larger.jpg")
-		else:  
-			img_floor = Image.open("flr" + str(after_stairs[0][0][2]) + "_larger.jpg")
+		img_floor = Image.open("flr" + str(list_of_paths[stair_count][0][0][2]) + "_larger.jpg")
 		img_floor = ImageOps.exif_transpose(img_floor)
 		width, height = int(img_floor.width / 2), int(img_floor.height / 2) 
 		img = img_floor.resize((width,height), Image.Resampling.LANCZOS)#.rotate(-90)
@@ -478,21 +443,12 @@ class NavigationPage(tk.Frame):
 		self.screen.create_image(0,0, image= img_tk, anchor= "nw")
 		self.update()
 		
-		#start drawing lines
-		if len(before_stairs) != 0:
-			for i in range(0,len(before_stairs),1):
-				self.screen.create_line(grid2Pixel(before_stairs[i][0][0:2],before_stairs[i][0][2])[0],
-								grid2Pixel(before_stairs[i][0][0:2],before_stairs[i][0][2])[1],
-								grid2Pixel(before_stairs[i][1][0:2],before_stairs[i][1][2])[0],
-								grid2Pixel(before_stairs[i][1][0:2],before_stairs[i][1][2])[1],
-								fill="blue", width = 3)
-		else:
-			for i in range(0,len(after_stairs),1):
-				self.screen.create_line(grid2Pixel(after_stairs[i][0][0:2],after_stairs[i][0][2])[0],
-								grid2Pixel(after_stairs[i][0][0:2],after_stairs[i][0][2])[1],
-								grid2Pixel(after_stairs[i][1][0:2],after_stairs[i][1][2])[0],
-								grid2Pixel(after_stairs[i][1][0:2],after_stairs[i][1][2])[1],
-								fill="blue", width = 3)
+		for i in range(0,len(list_of_paths[stair_count]),1):
+			self.screen.create_line(grid2Pixel(list_of_paths[stair_count][i][0][0:2],list_of_paths[stair_count][i][0][2])[0],
+							grid2Pixel(list_of_paths[stair_count][i][0][0:2],list_of_paths[stair_count][i][0][2])[1],
+							grid2Pixel(list_of_paths[stair_count][i][1][0:2],list_of_paths[stair_count][i][1][2])[0],
+							grid2Pixel(list_of_paths[stair_count][i][1][0:2],list_of_paths[stair_count][i][1][2])[1],
+							fill="blue", width = 3)
 
 
 # Page for Password insertion for Developer Mode 
