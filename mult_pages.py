@@ -414,7 +414,7 @@ class NavigationPage(tk.Frame):
 					#if the current user position exists in the path, remove the node from the path
 					if (not found_node_in_path) and (abs(current_user_pos[0] - list_of_paths[stair_count][i - removedCount][1][0]) <= 1) and (abs(current_user_pos[1] - list_of_paths[stair_count][i - removedCount][1][1]) <= 1) and (round(current_user_pos[2]/100) == list_of_paths[stair_count][i - removedCount][1][2]):
 						for j in range(0,i+1,1):
-							list_of_paths[stair_count].pop()
+							list_of_paths[stair_count].pop(0)
 							removedCount = removedCount + 1
 						found_node_in_path = True
 				if(len(list_of_paths[stair_count]) == 0):
