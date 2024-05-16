@@ -120,7 +120,7 @@ IMU_BUS = 1
 class SharedData:
     def __init__(self) -> None:
         self.lock = threading.Lock()
-        self.estimated_location = (0,0,0)
+        self.estimated_location = (0,0,-1)
         #self.estimated_location = (100,144,4)
         self.closing = False
         self.beacon_manager_lock = threading.Lock()
