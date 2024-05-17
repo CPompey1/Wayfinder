@@ -93,6 +93,8 @@ class tkinterApp(tk.Tk):
 		self.selected = False					# Used in SelectServices to decide whether or not a service was selected, and confirmed
 		self.enter = False						# Used in PasswordCheck to verify if the user entered the password or not
 		self.sel_room = StringVar()				# Placeholder for the selected room 
+		self.change_floor_string = StringVar()	# Placeholder for eventual changing room string
+		self.change_floor_string.set("The selected service is on this floor")
 		self.sel_service = "All services"		# Defaults to the "All services" list, where all the rooms are listed alphabetically
 		self.loop = loop						# Event loop, has to be passed to all frames
 		self.flags = [True, False, False, False, False]	# Start at StartPage, everything else is False
@@ -113,7 +115,7 @@ class tkinterApp(tk.Tk):
 
 		# Creating the Wayfinder window
 		container = tk.Frame(self) 
-		self.title("Wayfinder")
+		self.title("Wayfinder Navigation")
 		container.pack(side = "top", fill = "both", expand = True) 
 		container.grid_rowconfigure(0, weight = 1)
 		container.grid_columnconfigure(0, weight = 1)
@@ -216,7 +218,7 @@ class StartPage(tk.Frame):
 		panel.pack(pady=10)
 		start_frame = Frame(self, bg="white")
 		# Button to select service
-		start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = lambda : self.controller.enable_navigation())
+		start_button = ttk.Button(master=start_frame, text= "Start Navigating", command = self.controller.enable_navigation)
 		start_button.pack(pady=10)
 		# Button for enter password for developer mode
 		dev_mode_button = ttk.Button(master=start_frame, text= "Developer Mode", command = lambda: self.controller.change_frames(3))
@@ -251,7 +253,7 @@ class ServicesSearch(tk.Frame):
 		# Create frame under listboxes
 		bottom_frame = tk.Frame(self.page_frame)
 		bottom_frame.grid_columnconfigure(0, weight=5, uniform="a")
-		back_butt = ttk.Button(bottom_frame, text= "Back", command = lambda : self.controller.change_frames(0))
+		back_butt = ttk.Button(bottom_frame, text= "Back", command = self.back_from_sel_service)
 		back_butt.grid(column=0, row=0, padx=10, pady = 6, sticky="w")
 		# Create radio buttons to selected stairs or elevator as preference
 		s_or_el = ttk.Label(bottom_frame, text ="Stairs/Elevator Preference: ", font = FONT_SERVICES).grid(column=1, row=0, padx=10, pady = 6)
@@ -259,6 +261,12 @@ class ServicesSearch(tk.Frame):
 		R2 = Radiobutton(bottom_frame, text="Elevator", variable=self.controller.stairs, value=False).grid(column=3, row=0, padx=10, pady = 6)
 		bottom_frame.pack()
 		self.page_frame.pack()
+
+	# Function called when the user presses back from the ServicesSearch page
+	def back_from_sel_service(self):
+		self.controller.selected = False
+		self.controller.change_frames(0)
+
 
 	def onselect(self, evt: Event):
 		if not evt.widget.curselection():
@@ -320,20 +328,21 @@ class NavigationPage(tk.Frame):
 		asyncio.set_event_loop(self.loop)
 		self.controller = controller
 		tk.Frame.__init__(self, parent)
-
-		# Add label with selected service to reach
-		mess = "Goal: "+ str(controller.sel_room.get())
-		nav_label = Label(self, text= "Wayfinder Navigation", font=FONT).pack()
-		service_label = Label(self, textvariable= self.controller.sel_room, font=FONT_SERVICES).pack()
+		service_label = Label(self, textvariable= self.controller.sel_room, font=FONT).pack()
+		floor_frame = Frame(self)
 		# Back button
-		back_sel_service = ttk.Button(self, text ="Back", command = self.reset_service)
-		back_sel_service.pack(pady=5)
+		back_sel_service = ttk.Button(floor_frame, text ="Back", command = self.reset_service)
+		back_sel_service.pack(padx=10, side=LEFT)
+		# Add label with selected service to reach
+		Label(floor_frame, textvariable = self.controller.change_floor_string, font=FONT_SERVICES).pack(side=RIGHT)
+		floor_frame.pack()
 		# Create Canvas to draw the path to goal in
 		w = self.winfo_screenwidth()
 		h = self.winfo_screenheight()
 		self.screen = Canvas(master=self, width=w, height=h)
 		self.screen.pack(anchor="center")
 
+	# Back button function
 	def reset_service(self):
 		self.controller.selected = False
 		self.controller.change_frames(1)
@@ -367,11 +376,22 @@ class NavigationPage(tk.Frame):
 				list_of_paths.append([])
 				stair_count = stair_count + 1
 			locations[nodePath[i]] = self.controller.bfs.nodes[nodePath[i]]["location"]
+			
 
 		if(len(list_of_paths[0]) != 0):
 			list_of_paths[0].insert(0,[(user_node[0],user_node[1],user_location_feet[2]),list_of_paths[0][0][0]])
 		else:
 			list_of_paths.pop(0)
+		
+		if len(list_of_paths)> 1:
+			if list_of_paths[1][0][0][2] == 0:
+				string_floor = "Please proceed to Lockwood Basement"
+			else:
+				string_floor = "Please proceed to Lockwood Floor #"
+				string_floor += str(self.controller.bfs.nodes[nodePath[i]]["location"][2])
+			self.controller.change_floor_string.set(string_floor)
+		else:
+			self.controller.change_floor_string.set("The selected service is on this floor")
 
 		#continuously redraw the path with the given path information and user location
 		await self.repaint(list_of_paths, user_node, end_location)

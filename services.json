@@ -33,9 +33,9 @@
             ],
             "Office" : [
                 {
-                    "0" : ["Marketing Comm. and Digital Engagement", "Administrative Operations"],
+                    "0" : ["Administrative Operations", "Marketing Comm. and Digital Engagement"],
                     "1" : ["Science & Engineering Info Center", "Amanda McCormick, Science Librarian", "Todd Nibble, Facilities & Operation Supervisor", "Jill M. Hackenberg, Associate Librarian", "Sam Kim, GIS and Geospatial Librarian", "Erin Rowley, Engineering Librarian"],
-                    "2" : ["Jake Carlson, Ass. University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Donna Berryman, Ass. University for Research", "Karlen Chase, Head of Inst. Repository Services"],
+                    "2" : ["Donna Berryman, Ass. University for Research", "Jake Carlson, Ass. University for Research", "Jason Parker, Library Applicants Specialist", "Marine Mancuso, FPMO", "Karlen Chase, Head of Inst. Repository Services"],
                     "3" : null,
                     "4" : null,
                     "5" : null
@@ -63,10 +63,10 @@
             ],
             "Other" : [
                 {
-                    "0" : null,
+                    "0" : ["Topological Maps"],
                     "1" : ["Outside Entrance/Exit"],
                     "2" : ["Main Inside Entrance", "Level UP", "Scanners", "Library Service Desk"],
-                    "3" : null,
+                    "3" : ["DSSN (Room 320)"],
                     "4" : null,
                     "5" : null
                 }
