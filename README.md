@@ -13,11 +13,17 @@ Update SIMULATION in globals.py to change simulation mode. This will tell the ap
 
 For fucks sakes plz make a branch off of dev, add your changes there and then merge. DONOT push to main or dev. 
 
-And if I catch you using github upload I will find you, and I will crucify you and your kids. 
+And if I catch you using github upload, I will find you. 
 
 ## Insutructions Running on pi
 
 ```
+
+    #setup virtual environment
+    python3 -m venv .env
+    source .env/bin/activate
+    pip install tkinter bleak smbus asyncio PIL ttkbootstrap tkinter easydict
+
     cd ~/workspace/
     #if not already cloned
     
