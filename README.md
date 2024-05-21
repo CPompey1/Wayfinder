@@ -11,7 +11,7 @@ bleak
 ## Developers
 Update SIMULATION in globals.py to change simulation mode. This will tell the application to use real values from a MPU9255 connected to i2c bus 1
 
-For fucks sakes plz make a branch off of dev, add your changes there and then merge. DONOT push to main or dev. 
+For goodness sakes plz make a branch off of dev, add your changes there, and then merge. DONOT push directly to main or dev. 
 
 And if I catch you using github upload, I will find you. 
 
