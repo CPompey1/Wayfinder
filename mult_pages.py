@@ -435,9 +435,9 @@ class NavigationPage(tk.Frame):
 		
 		user_location = [0,0,-1]
 
-		current_user_pos = (user_position[0], user_position[1], 5)
-		previous_user_pos = (user_position[0], user_position[1], 5)
-		while self.controller.selected:
+		current_user_pos = (user_position[0], user_position[1], -1)
+		previous_user_pos = (user_position[0], user_position[1], -1)
+		while self.controller.selected and self.controller.flags[2]:
 			if(len(list_of_paths) == 0):
 				return 0
 			#get user position and orientation from navigation and mpu threads
